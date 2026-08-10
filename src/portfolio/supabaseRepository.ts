@@ -8,12 +8,7 @@ import type {
   VideoItem,
 } from './types'
 import { publicObjectUrl, transformedImageUrl } from './storage'
-import {
-  contentCache,
-  setCacheCategories,
-  setCacheItems,
-  setCacheVideos,
-} from '../lib/contentCache'
+import { contentCache } from '../lib/contentCache'
 
 /**
  * Supabase-backed content provider.
@@ -133,16 +128,12 @@ export class SupabasePortfolioRepository {
 
   async getPortfolioCategories(): Promise<PortfolioCategory[]> {
     const rows = await this.fetchCategories({ publishedOnly: true })
-    const cats = rows.map((r) => mapCategoryRow(r))
-    setCacheCategories(cats)
-    return [...cats].sort((a, b) => a.sortOrder - b.sortOrder)
+    return rows.map((r) => mapCategoryRow(r)).sort((a, b) => a.sortOrder - b.sortOrder)
   }
 
   async getVideos(): Promise<VideoItem[]> {
     const rows = await this.fetchVideos({ publishedOnly: true })
-    const videos = rows.map((r) => mapVideoRow(r))
-    setCacheVideos(videos)
-    return [...videos].sort((a, b) => a.sortOrder - b.sortOrder)
+    return rows.map((r) => mapVideoRow(r)).sort((a, b) => a.sortOrder - b.sortOrder)
   }
 
   async getFeaturedItems(): Promise<PortfolioItem[]> {
@@ -169,23 +160,17 @@ export class SupabasePortfolioRepository {
 
   async getAdminItems(): Promise<PortfolioItem[]> {
     const rows = await this.fetchItems({})
-    const items = rows.map((r) => mapItemRow(r))
-    setCacheItems(items, 'supabase')
-    return [...items].sort((a, b) => a.sortOrder - b.sortOrder)
+    return rows.map((r) => mapItemRow(r)).sort((a, b) => a.sortOrder - b.sortOrder)
   }
 
   async getAdminCategories(): Promise<PortfolioCategory[]> {
     const rows = await this.fetchCategories({})
-    const cats = rows.map((r) => mapCategoryRow(r))
-    setCacheCategories(cats)
-    return [...cats].sort((a, b) => a.sortOrder - b.sortOrder)
+    return rows.map((r) => mapCategoryRow(r)).sort((a, b) => a.sortOrder - b.sortOrder)
   }
 
   async getAdminVideos(): Promise<VideoItem[]> {
     const rows = await this.fetchVideos({})
-    const videos = rows.map((r) => mapVideoRow(r))
-    setCacheVideos(videos)
-    return [...videos].sort((a, b) => a.sortOrder - b.sortOrder)
+    return rows.map((r) => mapVideoRow(r)).sort((a, b) => a.sortOrder - b.sortOrder)
   }
 
   /* ---------- admin writes ---------- */
