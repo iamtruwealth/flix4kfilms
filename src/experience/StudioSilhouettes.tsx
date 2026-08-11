@@ -22,20 +22,24 @@ export function StudioSilhouettes() {
   const env = cfg.environment
   const { scene } = useGLTF(STUDIO_GLB)
 
-  // One clone per GLB load — materials are set once here.
-  const clone = useMemo(() => scene.clone(true), [scene])
-
+  // One fresh clone per env change — cloning is cheap (geometry is shared with
+  // the cache) and guarantees `applyStudioVisibility` re-traverses a complete
+  // tree. Mounting `<primitive>` re-parents kept nodes out of the clone, so
+  // reusing a single clone across calibration edits would lose them on the
+  // next memo recompute.
   const objects = useMemo(() => {
+    if (!env.enabled) return []
+    const clone = scene.clone(true)
     applyStudioVisibility(clone, env.keepNodes)
     const shade = new THREE.Color().setScalar(env.shade)
-    const kept: THREE.Object3D[] = []
+    const keepSet = new Set(env.keepNodes.map((name) => name.replace(/^\/+/, '')))
+    const kept = new Map<string, THREE.Object3D>()
     clone.traverse((obj) => {
-      if (env.keepNodes.includes(obj.name)) kept.push(obj)
-      if ((obj as THREE.Mesh).isMesh) {
-        const mesh = obj as THREE.Mesh
-        mesh.castShadow = false
-        mesh.receiveShadow = false
-        mesh.material = new THREE.MeshStandardMaterial({
+      if (keepSet.has(obj.name)) kept.set(obj.name, obj)
+      if (obj instanceof THREE.Mesh) {
+        obj.castShadow = false
+        obj.receiveShadow = false
+        obj.material = new THREE.MeshStandardMaterial({
           color: shade,
           roughness: 0.9,
           metalness: 0,
@@ -43,11 +47,11 @@ export function StudioSilhouettes() {
       }
     })
     kept.forEach((obj) => recenterObject(obj))
-    return kept
-  }, [clone, env])
+    return [...kept.values()]
+  }, [scene, env])
 
   const slots = useMemo(
-    () => computeRingSlots(objects.length, env.radius, env.arc, env.y),
+    () => (objects.length ? computeRingSlots(objects.length, env.radius, env.arc, env.y) : []),
     [objects, env.radius, env.arc, env.y],
   )
 

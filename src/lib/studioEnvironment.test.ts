@@ -38,6 +38,39 @@ describe('applyStudioVisibility', () => {
     const visible = root.children.filter((c) => c.visible).map((c) => c.name)
     expect(visible.sort()).toEqual([...keep].sort())
   })
+
+  it('keeps the whole subtree of a kept group visible (GLB-shaped graph)', () => {
+    const root = new THREE.Group()
+
+    const keptGroup = new THREE.Group()
+    keptGroup.name = 'UmFlash01_16'
+    const keptMesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1))
+    keptMesh.name = 'Object_N'
+    const nested = new THREE.Group()
+    nested.name = 'Reflector'
+    const nestedMesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1))
+    nestedMesh.name = 'Object_N'
+    nested.add(nestedMesh)
+    keptMesh.add(nested)
+    keptGroup.add(keptMesh)
+
+    const prunedGroup = new THREE.Group()
+    prunedGroup.name = 'Light_02'
+    const prunedMesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1))
+    prunedMesh.name = 'Object_N'
+    prunedGroup.add(prunedMesh)
+
+    root.add(keptGroup, prunedGroup)
+
+    applyStudioVisibility(root, ['/UmFlash01_16'])
+
+    expect(keptGroup.visible).toBe(true)
+    expect(keptMesh.visible).toBe(true)
+    expect(nested.visible).toBe(true)
+    expect(nestedMesh.visible).toBe(true)
+    expect(prunedGroup.visible).toBe(false)
+    expect(prunedMesh.visible).toBe(false)
+  })
 })
 
 describe('recenterObject', () => {

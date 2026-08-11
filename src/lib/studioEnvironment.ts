@@ -8,13 +8,14 @@ export interface RingSlot {
 }
 
 /**
- * Hide every node whose name is not in `keep`. Mesh children of a kept node
- * keep their default `visible = true`, so whole subtrees survive.
+ * Hide nodes outside `keep`. A node stays visible when it or any ancestor is
+ * in `keep`, so the whole subtree of a kept node survives (its unnamed Mesh
+ * children render). Keep entries are normalized (leading slashes tolerated).
  */
 export function applyStudioVisibility(root: THREE.Object3D, keep: readonly string[]): void {
-  const keepSet = new Set(keep)
+  const keepSet = new Set(keep.map((name) => name.replace(/^\/+/, '')))
   root.traverse((obj) => {
-    obj.visible = keepSet.has(obj.name)
+    obj.visible = keepSet.has(obj.name) || (obj.parent?.visible ?? false)
   })
 }
 

@@ -39,16 +39,24 @@ export function CameraExperience() {
     return clone
   }, [gltfScene])
 
-  // Normalization measured from the clone's actual bounds — single source.
-  const norm = useMemo(() => {
-    model.updateWorldMatrix(true, true)
-    const box = new THREE.Box3().setFromObject(model)
-    const center = box.getCenter(new THREE.Vector3())
+  // Static bounds measured from a detached clone — never the live wrapper,
+  // so the result cannot feedback-loop with the applied scale/recenter.
+  const bounds = useMemo(() => {
+    const measure = gltfScene.clone(true)
+    measure.updateMatrixWorld(true)
+    const box = new THREE.Box3().setFromObject(measure)
     const size = box.getSize(new THREE.Vector3())
-    const diagonal = Math.sqrt(size.x ** 2 + size.y ** 2 + size.z ** 2) || 1
-    const scale = cfg.normalize.scaleOverride || cfg.normalize.targetDiagonal / diagonal
-    return { center, scale }
-  }, [model, cfg])
+    return {
+      center: box.getCenter(new THREE.Vector3()),
+      diagonal: Math.sqrt(size.x ** 2 + size.y ** 2 + size.z ** 2) || 1,
+    }
+  }, [gltfScene])
+
+  // Normalization measured from the model's actual bounds — single source.
+  const norm = useMemo(() => {
+    const scale = cfg.normalize.scaleOverride || cfg.normalize.targetDiagonal / bounds.diagonal
+    return { center: bounds.center, scale }
+  }, [bounds, cfg])
 
   // Dispose the clone when we unmount (keeps the shared cache intact).
   useEffect(() => {

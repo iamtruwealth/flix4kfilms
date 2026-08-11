@@ -38,19 +38,6 @@ export function HeroDotField() {
     let pointer: { x: number; y: number } | null = null
     let raf = 0
 
-    const resize = () => {
-      const rect = canvas.getBoundingClientRect()
-      const w = Math.max(0, Math.round(rect.width * dpr))
-      const h = Math.max(0, Math.round(rect.height * dpr))
-      if (canvas.width !== w || canvas.height !== h) {
-        canvas.width = w
-        canvas.height = h
-      }
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-      ctx.clearRect(0, 0, rect.width, rect.height)
-      dots = computeDotPositions(rect.width, rect.height, df.gap)
-    }
-
     const draw = () => {
       const rect = canvas.getBoundingClientRect()
       ctx.clearRect(0, 0, rect.width, rect.height)
@@ -71,6 +58,20 @@ export function HeroDotField() {
       ctx.globalAlpha = 1
     }
 
+    const resize = () => {
+      const rect = canvas.getBoundingClientRect()
+      const w = Math.max(0, Math.round(rect.width * dpr))
+      const h = Math.max(0, Math.round(rect.height * dpr))
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w
+        canvas.height = h
+      }
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      ctx.clearRect(0, 0, rect.width, rect.height)
+      dots = computeDotPositions(rect.width, rect.height, df.gap)
+      draw()
+    }
+
     const onPointerMove = (e: PointerEvent) => {
       const rect = canvas.getBoundingClientRect()
       pointer = { x: e.clientX - rect.left, y: e.clientY - rect.top }
@@ -81,7 +82,6 @@ export function HeroDotField() {
     }
 
     resize()
-    draw()
     window.addEventListener('resize', resize)
     if (!staticField) window.addEventListener('pointermove', onPointerMove, { passive: true })
 
@@ -90,7 +90,9 @@ export function HeroDotField() {
       window.removeEventListener('pointermove', onPointerMove)
       if (raf) cancelAnimationFrame(raf)
     }
-  }, [df.gap, df.radius, df.color, df.baseAlpha, df.hoverRadius, df.hoverStrength, dpr, staticField])
+  }, [df.enabled, df.gap, df.radius, df.color, df.baseAlpha, df.hoverRadius, df.hoverStrength, dpr, staticField])
+
+  if (!df.enabled) return null
 
   return (
     <canvas
