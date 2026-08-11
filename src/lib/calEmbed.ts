@@ -1,20 +1,36 @@
 export const CAL_EMBED_SCRIPT_URL = 'https://app.cal.com/embed/embed.js'
 
 /**
- * Canonical Cal.com embed loader. The queue pattern lets us call
- * Cal("init") / Cal("inline") immediately; embed-core replays the queue.
+ * Canonical Cal.com embed loader (hosted app.cal.com). The queue pattern lets
+ * us call Cal("init") / Cal("inline") immediately; embed-core replays the queue.
+ * Appends the embed.js script to document.head, never to document itself.
  */
 export const CAL_EMBED_SNIPPET = `(function (C, A, L) {
-  let p = function (a, ar) { a.q = a.q || []; a.q.push(ar); };
-  let Cal = function (a, ar) { p(Cal, ar); };
-  Cal.q = Cal.q || [];
-  window.Cal = Cal;
-  window.cal = Cal;
-  let d = document.createElement("script");
-  d.async = true;
-  d.src = C;
-  A.appendChild(d);
-})(window, document, "${CAL_EMBED_SCRIPT_URL}");`
+  var p = function (a, ar) { a.q.push(ar); };
+  var d = C.document;
+  C.Cal = C.Cal || function () {
+    var cal = C.Cal;
+    var ar = arguments;
+    if (!cal.loaded) {
+      cal.ns = {};
+      cal.q = cal.q || [];
+      d.head.appendChild(d.createElement("script")).src = A;
+      cal.loaded = true;
+    }
+    if (ar[0] === L) {
+      var api = function () { p(api, arguments); };
+      var namespace = ar[1];
+      api.q = api.q || [];
+      if (typeof namespace === "string") {
+        cal.ns[namespace] = cal.ns[namespace] || api;
+        p(cal.ns[namespace], ar);
+        p(cal, ["initNamespace", namespace]);
+      } else p(cal, ar);
+      return;
+    }
+    p(cal, ar);
+  };
+})(window, "${CAL_EMBED_SCRIPT_URL}", "init");`
 
 export interface CalUiConfig {
   theme?: 'dark' | 'light' | 'auto'

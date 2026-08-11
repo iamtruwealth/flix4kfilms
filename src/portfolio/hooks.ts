@@ -115,7 +115,7 @@ export function useCachedPortfolioItems(): PortfolioItem[] {
 }
 
 /** Reactive to provider swaps — the cache bumps on every hydration/update. */
-function useCacheSource(): string {
+export function useCacheSource(): string {
   return useStore(contentCache).source
 }
 

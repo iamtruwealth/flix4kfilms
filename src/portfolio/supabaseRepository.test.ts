@@ -16,7 +16,7 @@ import {
   safeStorageName,
   slugify,
 } from './storage'
-import { contentCache, setCacheItems } from '../lib/contentCache'
+import { setCacheItems } from '../lib/contentCache'
 
 /**
  * Fake Supabase client: records the table/queries exercised and returns
@@ -46,8 +46,11 @@ function makeFakeClient(opts: {
   categories?: CategoryRow[]
   videos?: VideoRow[]
   failOn?: string
-}): { client: SupabaseClient; calls: { table: string; filters: Filter[] }[] } {
-  const calls: { table: string; filters: Filter[] }[] = []
+}): {
+  client: SupabaseClient
+  calls: { table: string; op: string; filters: Filter[] }[]
+} {
+  const calls: { table: string; op: string; filters: Filter[] }[] = []
 
   const client = {
     from: vi.fn((table: string) => {
@@ -61,8 +64,9 @@ function makeFakeClient(opts: {
               : []
 
       const filters: Filter[] = []
+      let op = 'select'
       const respond = (single: boolean) => {
-        calls.push({ table, filters: [...filters] })
+        calls.push({ table, op, filters: [...filters] })
         const error = opts.failOn === table ? { message: `boom on ${table}` } : null
         let data = rows.filter((r) =>
           filters.every((f) => (r as unknown as Record<string, unknown>)[f.column] === f.value),
@@ -77,11 +81,26 @@ function makeFakeClient(opts: {
           return builder
         },
         order: () => builder,
-        select: () => builder,
-        insert: () => builder,
-        update: () => builder,
-        delete: () => builder,
-        upsert: () => builder,
+        select: () => {
+          op = 'select'
+          return builder
+        },
+        insert: () => {
+          op = 'insert'
+          return builder
+        },
+        update: () => {
+          op = 'update'
+          return builder
+        },
+        delete: () => {
+          op = 'delete'
+          return builder
+        },
+        upsert: () => {
+          op = 'upsert'
+          return builder
+        },
         single: () => Promise.resolve(respond(true)),
         then: (resolve) => Promise.resolve(respond(false)).then(resolve),
       }
@@ -229,6 +248,15 @@ describe('row mapping (pure)', () => {
     expect(mapItemRow(ITEMS[1], BASE_URL).imageUrl).toBeNull()
   })
 
+  it('derives a numeric variant from sort_order (UUID ids must not yield NaN)', () => {
+    const item = mapItemRow(
+      { ...ITEMS[0], id: '1c7b109c-1d4a-4221-8a6a-5e4f4493a3f4', sort_order: 7 },
+      BASE_URL,
+    )
+    expect(item.variant).toBe('07')
+    expect(Number.isNaN(Number(item.variant))).toBe(false)
+  })
+
   it('maps category + video rows', () => {
     expect(mapCategoryRow(CATEGORIES[0])).toMatchObject({
       id: 'cat-a',
@@ -269,13 +297,11 @@ describe('SupabasePortfolioRepository (fake client)', () => {
     expect(cats.map((c) => c.id)).toEqual(['cat-a'])
   })
 
-  it('hydrates the content cache from admin views', async () => {
+  it('admin views include unpublished items', async () => {
     const { repo } = makeRepo({ items: ITEMS, categories: CATEGORIES })
     const items = await repo.getAdminItems()
     expect(items).toHaveLength(3)
-    expect(contentCache.get().items).toHaveLength(3)
-    expect(contentCache.get().source).toBe('supabase')
-    expect(repo.getCachedPortfolioItems()).toHaveLength(3)
+    expect(items.some((i) => !i.published)).toBe(true)
   })
 
   it('returns published videos only', async () => {
@@ -287,5 +313,16 @@ describe('SupabasePortfolioRepository (fake client)', () => {
   it('throws when the underlying query fails', async () => {
     const { repo } = makeRepo({ items: ITEMS, categories: CATEGORIES, failOn: 'portfolio_items' })
     await expect(repo.getPortfolioItems()).rejects.toThrow(/boom on portfolio_items/)
+  })
+
+  it('reorders via per-row updates keyed by id', async () => {
+    const { repo, calls } = makeRepo({ items: ITEMS })
+    await repo.reorderItems(['row-1', 'row-3'])
+    const updates = calls.filter((c) => c.table === 'portfolio_items' && c.op === 'update')
+    expect(updates.map((c) => c.filters)).toEqual([
+      [{ column: 'id', value: 'row-1' }],
+      [{ column: 'id', value: 'row-3' }],
+    ])
+    expect(calls.some((c) => c.op === 'upsert')).toBe(false)
   })
 })

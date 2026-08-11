@@ -87,7 +87,7 @@ export function mapItemRow(row: ItemRow, baseUrl?: string): PortfolioItem {
     sortOrder: row.sort_order,
     published: row.published,
     featured: row.featured,
-    variant: row.id.slice(0, 2),
+    variant: String(row.sort_order).padStart(2, '0'),
   }
 }
 
@@ -216,14 +216,16 @@ export class SupabasePortfolioRepository {
   }
 
   async reorderItems(orderedIds: string[]): Promise<void> {
-    const updates = orderedIds.map((id, index) => ({
-      id,
-      sort_order: index + 1,
-    }))
-    const { error } = await this.client.from('portfolio_items').upsert(updates, {
-      onConflict: 'id',
-    })
-    if (error) throw new Error(error.message)
+    // Per-row UPDATEs: an UPSERT would propose new rows carrying only
+    // { id, sort_order } and hit the NOT NULL constraints on title/slug
+    // before the conflict path could update them.
+    for (const [index, id] of orderedIds.entries()) {
+      const { error } = await this.client
+        .from('portfolio_items')
+        .update({ sort_order: index + 1 })
+        .eq('id', id)
+      if (error) throw new Error(error.message)
+    }
   }
 
   async createVideo(input: AdminVideoInput): Promise<VideoItem> {

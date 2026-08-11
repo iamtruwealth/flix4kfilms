@@ -74,20 +74,61 @@ body { color: var(--ink); }
   letter-spacing: 0.45em;
   color: var(--dim);
   margin: 0 0 1.25rem;
+  line-height: 1.9;
 }
 .intro-title {
   font-size: clamp(2.6rem, 7.5vw, 6.5rem);
   line-height: 0.98;
   font-weight: 300;
   letter-spacing: -0.03em;
-  margin: 0 0 1.5rem;
+  margin: 0 0 1.25rem;
   color: var(--ink);
+}
+.intro-secondary {
+  font-size: clamp(1rem, 2vw, 1.4rem);
+  font-weight: 300;
+  letter-spacing: 0.18em;
+  color: var(--dim);
+  margin: 0 0 0.9rem;
 }
 .intro-sub {
   font-size: clamp(0.9rem, 1.4vw, 1.05rem);
   color: var(--dim);
   margin: 0;
   letter-spacing: 0.02em;
+}
+.intro-tagline {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin: 1.6rem 0 0;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--line);
+}
+.look-again {
+  position: fixed;
+  left: 50%;
+  bottom: 26%;
+  transform: translateX(-50%);
+  z-index: 4;
+  font-family: var(--mono);
+  font-size: clamp(0.62rem, 1vw, 0.78rem);
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: var(--dim);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .intro { justify-content: flex-start; padding-top: 16vh; }
+  .intro-title { font-size: clamp(2rem, 9vw, 3.2rem); }
+  .intro-secondary { font-size: clamp(0.95rem, 2.6vw, 1.2rem); }
+  .intro-sub { font-size: 0.9rem; }
+  .intro-tagline { margin-top: 1.4rem; }
+  .look-again { bottom: 20%; }
 }
 
 .hint {

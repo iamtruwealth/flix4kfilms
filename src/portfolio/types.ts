@@ -6,6 +6,14 @@
  * remote storage paths). Nothing here ever points at a component.
  */
 
+/**
+ * Art-directed composition role for the editorial gallery. Optional — when a
+ * photo has no layout the composition engine picks a tasteful fallback, so
+ * existing records keep rendering correctly. `hero` is reserved for the lead
+ * photo (first explicit hero, else first featured).
+ */
+export type PortfolioLayout = 'hero' | 'large' | 'standard' | 'portrait' | 'wide'
+
 /** Publishable portfolio photograph record. */
 export interface PortfolioItem {
   id: string
@@ -23,6 +31,8 @@ export interface PortfolioItem {
   featured: boolean
   /** Procedural artwork seed (placeholder '01'..'NN' while imageUrl is null). */
   variant: string
+  /** Editorial layout role; undefined = auto-composed fallback. */
+  layout?: PortfolioLayout
 }
 
 export interface PortfolioCategory {
