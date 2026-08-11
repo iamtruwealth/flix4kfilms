@@ -67,7 +67,7 @@ export function HomePage() {
       >
         <header className="portfolio-head">
           <p className="kicker">SELECTED WORK</p>
-          <h2>Studies in monochrome.</h2>
+          <h2>Portfolio</h2>
         </header>
         <PortfolioGrid items={featured} />
         <footer className="portfolio-foot">

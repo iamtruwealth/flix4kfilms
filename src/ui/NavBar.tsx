@@ -96,7 +96,7 @@ export function NavBar() {
                   aria-controls="nav-categories"
                   onClick={() => setOpenDebounced(!open)}
                   onMouseEnter={() => setOpenDebounced(true, 80)}
-                  onMouseLeave={() => setOpenDebounced(false, 200)}
+                  onMouseLeave={() => setOpenDebounced(false, 400)}
                 >
                   PORTFOLIO
                   <span className="nav-caret" aria-hidden="true" />

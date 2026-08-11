@@ -1,28 +1,33 @@
 import { Link } from 'react-router-dom'
 
-/** Studio bio — static editorial copy, no repository dependency. */
 export function AboutPage() {
   return (
     <div className="page">
       <header className="page-head">
         <p className="kicker">ABOUT</p>
         <h1>The studio.</h1>
-        <p className="page-lede">
-          One camera. One discipline. Monochrome, shot at 4K, graded by hand.
-        </p>
       </header>
 
       <div className="prose">
         <p>
-          FLIX 4K is a monochrome photography studio built around a single
-          principle: constrain the tools, and the craft does the rest. Every
-          commission — weddings, events, birthdays, portraits — is shot on the
-          same camera, in black and white, and finished at 4K.
+          Just a few miles from Atlanta, FLIX 4K Photography provides an excellent
+          and affordable crew for filming, video, photography, and special events.
+          Our many locations offer multiple industrial exterior backgrounds with
+          views of downtown in an extremely film-friendly environment and amazing
+          botanical and landscaped places.
         </p>
         <p>
-          The site itself is a film: scroll, and the camera that made the work
-          turns to greet you, its LCD running through the archive before the
-          pages take over.
+          Our staff is highly trained, highly professional, and very friendly.
+        </p>
+        <p>We will get the job done quickly and beautifully.</p>
+        <p>
+          Photography is about seeing LIFE in pictures and capturing each moment
+          that will preserve a lasting memory. Photographers must also know how to
+          tell an undying LOVE story through a lens. Our world is literally in a
+          perpetual forward motion, but one thing that is constant is FAMILY. We
+          like to think that when you reflect upon your past you will have
+          photographs to capture moments of your life, love, and family that will
+          leave a lasting imprint in your heart.
         </p>
       </div>
 
