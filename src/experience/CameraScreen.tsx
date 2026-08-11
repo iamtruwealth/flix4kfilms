@@ -92,8 +92,9 @@ export function CameraScreen() {
     const cfg = calibrationStore.get()
     const debug = debugStore.get()
 
-    const items = getCachedPortfolioItems()
-    const count = items.length
+    const allItems = getCachedPortfolioItems()
+    const items = allItems.filter((i) => i.featured)
+    const count = items.length || allItems.length
     let index = photoIndex(progress, cfg.phases, count)
     if (debug.lcdPreview && debug.forcedPhotoIndex != null) {
       index = Math.min(count - 1, Math.max(-1, debug.forcedPhotoIndex))
