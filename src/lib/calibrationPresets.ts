@@ -102,6 +102,16 @@ export interface DotFieldCalibration {
   baseAlpha: number
   /** DPR cap for the canvas. */
   maxDpr: number
+  /** Swarm physics master switch (ignored on coarse pointers / reduced motion). */
+  swarm: boolean
+  /** Acceleration toward the pointer (px/frame² at full strength). */
+  attraction: number
+  /** Spring-back acceleration toward the home grid position (px/frame² per px). */
+  spring: number
+  /** Velocity retained per frame (0..1). */
+  damping: number
+  /** Max dot speed (px/frame). */
+  maxSpeed: number
 }
 
 // ---------------------------------------------------------------------------
@@ -311,9 +321,14 @@ export const DEFAULT_CALIBRATION: CalibrationConfig = {
     gap: 32,
     radius: 1.75,
     color: '#3d3d3d',
-    hoverRadius: 90,
+    hoverRadius: 150,
     hoverStrength: 0.4,
     baseAlpha: 0.7,
     maxDpr: 1.5,
+    swarm: true,
+    attraction: 0.4,
+    spring: 0.005,
+    damping: 0.94,
+    maxSpeed: 12,
   },
 }

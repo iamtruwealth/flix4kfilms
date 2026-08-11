@@ -189,9 +189,20 @@ export function DebugUI() {
                 { label: 'baseAlpha', min: 0, max: 1, step: 0.05, get: (c) => c.dotField.baseAlpha, set: (c, v) => ({ ...c, dotField: { ...c.dotField, baseAlpha: v } }) },
                 { label: 'hoverRadius', min: 30, max: 200, step: 5, get: (c) => c.dotField.hoverRadius, set: (c, v) => ({ ...c, dotField: { ...c.dotField, hoverRadius: v } }) },
                 { label: 'hoverStrength', min: 0, max: 1, step: 0.05, get: (c) => c.dotField.hoverStrength, set: (c, v) => ({ ...c, dotField: { ...c.dotField, hoverStrength: v } }) },
+                { label: 'attraction', min: 0, max: 1.0, step: 0.02, get: (c) => c.dotField.attraction, set: (c, v) => ({ ...c, dotField: { ...c.dotField, attraction: v } }) },
+                { label: 'spring', min: 0, max: 0.05, step: 0.001, get: (c) => c.dotField.spring, set: (c, v) => ({ ...c, dotField: { ...c.dotField, spring: v } }) },
+                { label: 'damping', min: 0.5, max: 0.99, step: 0.005, get: (c) => c.dotField.damping, set: (c, v) => ({ ...c, dotField: { ...c.dotField, damping: v } }) },
+                { label: 'maxSpeed', min: 2, max: 24, step: 0.5, get: (c) => c.dotField.maxSpeed, set: (c, v) => ({ ...c, dotField: { ...c.dotField, maxSpeed: v } }) },
               ]}
             />
             <div className="panel-actions">
+              <button
+                onClick={() =>
+                  setCalibration((p) => ({ ...p, dotField: { ...p.dotField, swarm: !p.dotField.swarm } }))
+                }
+              >
+                swarm: {cfg.dotField.swarm ? 'ON' : 'OFF'}
+              </button>
               <button
                 onClick={() =>
                   setCalibration((p) => ({ ...p, dotField: { ...p.dotField, enabled: !p.dotField.enabled } }))
