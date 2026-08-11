@@ -31,19 +31,22 @@ export function PhotosPage() {
   const [filterCategory, setFilterCategory] = useState('')
   const [reordering, setReordering] = useState(false)
   const [draft, setDraft] = useState<PortfolioItem[]>([])
+  const [uploadCat, setUploadCat] = useState('')
 
   /** The collection currently on screen (scoped by the category filter). */
   const scoped = visibleItems(items, filterCategory)
+
+  const uploadCategoryId = uploadCat || categories.find((c) => c.published)?.id || categories[0]?.id || ''
+  const uploadCategorySlug = (uploadCat ? categories.find((c) => c.id === uploadCat) : categories.find((c) => c.published))?.slug ?? ''
 
   const onUploaded = async (objects: UploadedObject[]) => {
     setError(null)
     const repo = getPortfolioRepository()
     for (const obj of objects) {
       try {
-        const category = categories.find((c) => c.published)
         await repo.createItem({
           title: '',
-          categoryId: category?.id ?? categories[0]?.id ?? '',
+          categoryId: uploadCategoryId,
           slug: `${Date.now()}-${obj.path.split('/').pop() ?? 'item'}`,
           description: '',
           imagePath: obj.path,
@@ -170,12 +173,28 @@ export function PhotosPage() {
       {error ? <p className="admin-error admin-error-block" role="alert">{error}</p> : null}
 
       {!reordering ? (
-        <UploadDropzone
-          bucket="portfolio-images"
-          categorySlug={categories.find((c) => c.published)?.slug ?? ''}
-          year={new Date().getFullYear().toString()}
-          onUploaded={(objs) => void onUploaded(objs)}
-        />
+        <>
+          <div className="admin-upload-bar">
+            <select
+              className="admin-input"
+              value={uploadCat}
+              onChange={(e) => setUploadCat(e.target.value)}
+            >
+              <option value="">Auto (first published)</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}{!c.published ? ' (draft)' : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+          <UploadDropzone
+            bucket="portfolio-images"
+            categorySlug={uploadCategorySlug}
+            year={new Date().getFullYear().toString()}
+            onUploaded={(objs) => void onUploaded(objs)}
+          />
+        </>
       ) : null}
 
       <div className="admin-card">

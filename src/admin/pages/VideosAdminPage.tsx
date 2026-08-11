@@ -26,6 +26,7 @@ export function VideosAdminPage() {
   const [newYtUrl, setNewYtUrl] = useState('')
   const [newCatId, setNewCatId] = useState('')
   const [showForm, setShowForm] = useState(false)
+  const [uploadCat, setUploadCat] = useState('')
 
   const addYtVideo = async (e: FormEvent) => {
     e.preventDefault()
@@ -60,6 +61,7 @@ export function VideosAdminPage() {
 
   const onUploaded = async (objects: UploadedObject[]) => {
     setError(null)
+    const catId = uploadCat || null
     for (const obj of objects) {
       try {
         await getPortfolioRepository().createVideo({
@@ -69,7 +71,7 @@ export function VideosAdminPage() {
           videoPath: obj.path,
           thumbnailPath: null,
           youtubeUrl: null,
-          categoryId: null,
+          categoryId: catId,
           year: '2026',
           sortOrder: videos.length + 1,
           published: false,
@@ -191,6 +193,20 @@ export function VideosAdminPage() {
         )}
       </div>
 
+      <div className="admin-upload-bar">
+        <select
+          className="admin-input"
+          value={uploadCat}
+          onChange={(e) => setUploadCat(e.target.value)}
+        >
+          <option value="">No category</option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+      </div>
       <UploadDropzone
         bucket="portfolio-videos"
         categorySlug="videos"

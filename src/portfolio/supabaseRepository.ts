@@ -240,22 +240,20 @@ export class SupabasePortfolioRepository {
   async createVideo(input: AdminVideoInput): Promise<VideoItem> {
     const { data, error } = await this.client
       .from('videos')
-      .insert({
-        title: input.title,
-        slug: input.slug,
-        description: input.description,
-        video_path: input.videoPath,
-        thumbnail_path: input.thumbnailPath,
-        youtube_url: input.youtubeUrl,
-        category_id: input.categoryId,
-        year: input.year,
-        sort_order: input.sortOrder,
-        published: input.published,
-        featured: input.featured,
-      })
+      .insert(buildVideoInsert(input, true))
       .select()
       .single()
-    if (error || !data) throw new Error(error?.message ?? 'Create video failed')
+    if (error) {
+      // DB may not have youtube_url / category_id columns yet — retry stripped.
+      const retry = await this.client
+        .from('videos')
+        .insert(buildVideoInsert(input, false))
+        .select()
+        .single()
+      if (retry.error || !retry.data) throw new Error(retry.error?.message ?? 'Create video failed')
+      return mapVideoRow(retry.data as VideoRow)
+    }
+    if (!data) throw new Error('Create video failed')
     return mapVideoRow(data as VideoRow)
   }
 
@@ -265,11 +263,21 @@ export class SupabasePortfolioRepository {
   ): Promise<VideoItem> {
     const { data, error } = await this.client
       .from('videos')
-      .update(toVideoPatch(patch))
+      .update(toVideoPatch(patch, true))
       .eq('id', id)
       .select()
       .single()
-    if (error || !data) throw new Error(error?.message ?? 'Update video failed')
+    if (error) {
+      const retry = await this.client
+        .from('videos')
+        .update(toVideoPatch(patch, false))
+        .eq('id', id)
+        .select()
+        .single()
+      if (retry.error || !retry.data) throw new Error(retry.error?.message ?? 'Update video failed')
+      return mapVideoRow(retry.data as VideoRow)
+    }
+    if (!data) throw new Error('Update video failed')
     return mapVideoRow(data as VideoRow)
   }
 
@@ -409,15 +417,36 @@ function toItemPatch(patch: Partial<AdminItemInput>): Record<string, unknown> {
   return out
 }
 
-function toVideoPatch(patch: Partial<AdminVideoInput>): Record<string, unknown> {
+function buildVideoInsert(input: AdminVideoInput, newCols: boolean): Record<string, unknown> {
+  const out: Record<string, unknown> = {
+    title: input.title,
+    slug: input.slug,
+    description: input.description,
+    video_path: input.videoPath,
+    thumbnail_path: input.thumbnailPath,
+    year: input.year,
+    sort_order: input.sortOrder,
+    published: input.published,
+    featured: input.featured,
+  }
+  if (newCols) {
+    out.youtube_url = input.youtubeUrl
+    out.category_id = input.categoryId
+  }
+  return out
+}
+
+function toVideoPatch(patch: Partial<AdminVideoInput>, newCols = true): Record<string, unknown> {
   const out: Record<string, unknown> = {}
   if (patch.title !== undefined) out.title = patch.title
   if (patch.slug !== undefined) out.slug = patch.slug
   if (patch.description !== undefined) out.description = patch.description
   if (patch.videoPath !== undefined) out.video_path = patch.videoPath
   if (patch.thumbnailPath !== undefined) out.thumbnail_path = patch.thumbnailPath
-  if (patch.youtubeUrl !== undefined) out.youtube_url = patch.youtubeUrl
-  if (patch.categoryId !== undefined) out.category_id = patch.categoryId
+  if (newCols) {
+    if (patch.youtubeUrl !== undefined) out.youtube_url = patch.youtubeUrl
+    if (patch.categoryId !== undefined) out.category_id = patch.categoryId
+  }
   if (patch.year !== undefined) out.year = patch.year
   if (patch.sortOrder !== undefined) out.sort_order = patch.sortOrder
   if (patch.published !== undefined) out.published = patch.published
