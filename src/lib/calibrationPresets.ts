@@ -64,6 +64,46 @@ export interface QualityCalibration {
   maxDpr: number
 }
 
+/** Distant studio silhouettes behind/around the hero camera. */
+export interface EnvironmentCalibration {
+  /** Master switch — the whole layer renders when true. */
+  enabled: boolean
+  /** GLB node names kept visible (everything else is hidden). */
+  keepNodes: readonly string[]
+  /** Ring radius in scene units (distance from the origin). */
+  radius: number
+  /** Vertical position of the ring. */
+  y: number
+  /** Angular span of the ring in radians (centered behind the camera, -Z). */
+  arc: number
+  /** Per-object scale multiplier. */
+  scale: number
+  /** Additional per-object yaw (radians). */
+  yaw: number
+  /** Material lightness 0..1 (0.05 ≈ #0D0D0D near-black silhouette). */
+  shade: number
+}
+
+/** Fullscreen interactive canvas dot field behind the 3D scene. */
+export interface DotFieldCalibration {
+  /** Master switch. */
+  enabled: boolean
+  /** Dot grid spacing in CSS px. */
+  gap: number
+  /** Dot radius in CSS px. */
+  radius: number
+  /** Dot fill color (monochrome). */
+  color: string
+  /** Interaction reach around the pointer (CSS px). */
+  hoverRadius: number
+  /** Peak additive brightness near the pointer (0..1). */
+  hoverStrength: number
+  /** Base dot opacity (0..1). */
+  baseAlpha: number
+  /** DPR cap for the canvas. */
+  maxDpr: number
+}
+
 // ---------------------------------------------------------------------------
 // Scroll phases
 // ---------------------------------------------------------------------------
@@ -161,6 +201,8 @@ export interface CalibrationConfig {
   lcd: LcdCalibration
   content: ScreenContentCalibration
   quality: QualityCalibration
+  environment: EnvironmentCalibration
+  dotField: DotFieldCalibration
 }
 
 /**
@@ -247,5 +289,31 @@ export const DEFAULT_CALIBRATION: CalibrationConfig = {
   quality: {
     shadowsResolution: 2048,
     maxDpr: 2,
+  },
+  environment: {
+    enabled: true,
+    keepNodes: [
+      'Um.Flash.01_16',
+      'SoftBox.01_15',
+      'Ladder_17',
+      'Flash.04_12',
+      'Mic.01_8',
+    ],
+    radius: 7,
+    y: -1.5,
+    arc: Math.PI,
+    scale: 0.3,
+    yaw: 0,
+    shade: 0.06,
+  },
+  dotField: {
+    enabled: true,
+    gap: 32,
+    radius: 1.25,
+    color: '#161616',
+    hoverRadius: 90,
+    hoverStrength: 0.4,
+    baseAlpha: 0.5,
+    maxDpr: 1.5,
   },
 }
