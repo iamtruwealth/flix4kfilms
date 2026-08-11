@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type SyntheticEvent } from 'react'
 
 function youtubeId(url: string): string | null {
   const m = url.match(
@@ -8,27 +8,33 @@ function youtubeId(url: string): string | null {
 }
 
 export interface VideoEmbedProps {
-  youtubeUrl: string
+  youtubeUrl: string | null
+  videoUrl: string | null
   title: string
   description?: string
 }
 
-/**
- * Lazy YouTube embed. Shows a placeholder thumbnail until the user clicks
- * play — avoids loading the full iframe on mount. Falls back gracefully
- * when the URL is not a valid YouTube URL.
- */
-export function VideoEmbed({ youtubeUrl, title, description }: VideoEmbedProps) {
-  const [playing, setPlaying] = useState(false)
-  const id = youtubeId(youtubeUrl)
+export function VideoEmbed({ youtubeUrl, videoUrl, title, description }: VideoEmbedProps) {
+  const ytId = youtubeUrl ? youtubeId(youtubeUrl) : null
+  const source: 'youtube' | 'upload' | null = ytId ? 'youtube' : videoUrl ? 'upload' : null
 
-  if (!id) {
+  if (!source) {
     return (
       <div className="video-embed video-embed--error" role="alert">
-        <p>Video unavailable — invalid YouTube URL.</p>
+        <p>No video source — missing URL.</p>
       </div>
     )
   }
+
+  if (source === 'youtube') {
+    return <YoutubeEmbed ytId={ytId!} title={title} description={description} />
+  }
+
+  return <UploadedVideo url={videoUrl!} title={title} description={description} />
+}
+
+function YoutubeEmbed({ ytId, title, description }: { ytId: string; title: string; description?: string }) {
+  const [playing, setPlaying] = useState(false)
 
   if (!playing) {
     return (
@@ -38,7 +44,7 @@ export function VideoEmbed({ youtubeUrl, title, description }: VideoEmbedProps) 
         aria-label={`Play ${title}`}
       >
         <img
-          src={`https://img.youtube.com/vi/${id}/hqdefault.jpg`}
+          src={`https://img.youtube.com/vi/${ytId}/hqdefault.jpg`}
           alt=""
           loading="lazy"
           decoding="async"
@@ -51,12 +57,50 @@ export function VideoEmbed({ youtubeUrl, title, description }: VideoEmbedProps) 
   }
 
   return (
-    <div className="video-embed">
+    <div className="video-embed video-embed--youtube">
       <iframe
-        src={`https://www.youtube.com/embed/${id}?autoplay=1&rel=0`}
+        src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0`}
         title={title}
         allow="autoplay; encrypted-media; picture-in-picture"
         allowFullScreen
+      />
+      {description && <p className="video-embed__desc">{description}</p>}
+    </div>
+  )
+}
+
+function UploadedVideo({ url, title, description }: { url: string; title: string; description?: string }) {
+  const [playing, setPlaying] = useState(false)
+  const [orientation, setOrientation] = useState<'landscape' | 'portrait' | null>(null)
+
+  const onLoaded = (e: SyntheticEvent<HTMLVideoElement>) => {
+    const v = e.currentTarget
+    setOrientation(v.videoWidth >= v.videoHeight ? 'landscape' : 'portrait')
+  }
+
+  if (!playing) {
+    return (
+      <button
+        className="video-embed video-embed--placeholder"
+        onClick={() => setPlaying(true)}
+        aria-label={`Play ${title}`}
+      >
+        <span className="video-embed__play" aria-hidden="true">▶</span>
+        <span className="video-embed__title">{title}</span>
+        {description && <span className="video-embed__desc">{description}</span>}
+      </button>
+    )
+  }
+
+  return (
+    <div className={`video-embed video-embed--upload${orientation === 'portrait' ? ' video-embed--portrait' : ''}`}>
+      <video
+        src={url}
+        title={title}
+        controls
+        autoPlay
+        playsInline
+        onLoadedMetadata={onLoaded}
       />
       {description && <p className="video-embed__desc">{description}</p>}
     </div>

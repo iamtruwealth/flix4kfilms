@@ -56,7 +56,8 @@ export function CategoryPage() {
             {videos.map((v) => (
               <VideoEmbed
                 key={v.id}
-                youtubeUrl={v.youtubeUrl ?? ''}
+                youtubeUrl={v.youtubeUrl}
+                videoUrl={v.videoUrl}
                 title={v.title}
                 description={v.description}
               />
