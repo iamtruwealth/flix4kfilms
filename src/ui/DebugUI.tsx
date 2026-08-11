@@ -162,6 +162,45 @@ export function DebugUI() {
               </button>
             </div>
             <Panel
+              title="Environment"
+              rows={[
+                { label: 'radius', min: 2, max: 12, step: 0.25, get: (c) => c.environment.radius, set: (c, v) => ({ ...c, environment: { ...c.environment, radius: v } }) },
+                { label: 'y', min: -4, max: 2, step: 0.05, get: (c) => c.environment.y, set: (c, v) => ({ ...c, environment: { ...c.environment, y: v } }) },
+                { label: 'arc (rad)', min: 0.5, max: 6.3, step: 0.05, get: (c) => c.environment.arc, set: (c, v) => ({ ...c, environment: { ...c.environment, arc: v } }) },
+                { label: 'scale', min: 0.05, max: 1, step: 0.01, get: (c) => c.environment.scale, set: (c, v) => ({ ...c, environment: { ...c.environment, scale: v } }) },
+                { label: 'yaw (rad)', min: -3.2, max: 3.2, step: 0.05, get: (c) => c.environment.yaw, set: (c, v) => ({ ...c, environment: { ...c.environment, yaw: v } }) },
+                { label: 'shade', min: 0, max: 0.5, step: 0.005, get: (c) => c.environment.shade, set: (c, v) => ({ ...c, environment: { ...c.environment, shade: v } }) },
+              ]}
+            />
+            <div className="panel-actions">
+              <button
+                onClick={() =>
+                  setCalibration((p) => ({ ...p, environment: { ...p.environment, enabled: !p.environment.enabled } }))
+                }
+              >
+                env: {cfg.environment.enabled ? 'ON' : 'OFF'}
+              </button>
+            </div>
+            <Panel
+              title="Dot field"
+              rows={[
+                { label: 'gap', min: 20, max: 48, step: 1, get: (c) => c.dotField.gap, set: (c, v) => ({ ...c, dotField: { ...c.dotField, gap: v } }) },
+                { label: 'radius', min: 0.5, max: 3, step: 0.1, get: (c) => c.dotField.radius, set: (c, v) => ({ ...c, dotField: { ...c.dotField, radius: v } }) },
+                { label: 'baseAlpha', min: 0, max: 1, step: 0.05, get: (c) => c.dotField.baseAlpha, set: (c, v) => ({ ...c, dotField: { ...c.dotField, baseAlpha: v } }) },
+                { label: 'hoverRadius', min: 30, max: 200, step: 5, get: (c) => c.dotField.hoverRadius, set: (c, v) => ({ ...c, dotField: { ...c.dotField, hoverRadius: v } }) },
+                { label: 'hoverStrength', min: 0, max: 1, step: 0.05, get: (c) => c.dotField.hoverStrength, set: (c, v) => ({ ...c, dotField: { ...c.dotField, hoverStrength: v } }) },
+              ]}
+            />
+            <div className="panel-actions">
+              <button
+                onClick={() =>
+                  setCalibration((p) => ({ ...p, dotField: { ...p.dotField, enabled: !p.dotField.enabled } }))
+                }
+              >
+                dots: {cfg.dotField.enabled ? 'ON' : 'OFF'}
+              </button>
+            </div>
+            <Panel
               title="Global"
               rows={[
                 { label: 'track vh', min: 300, max: 1500, step: 25, get: (c) => c.scene.scrollLengthVh, set: (c, v) => ({ ...c, scene: { ...c.scene, scrollLengthVh: v } }) },
