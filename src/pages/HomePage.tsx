@@ -26,7 +26,8 @@ export function HomePage() {
   useDebugKeys()
   const reduced = useReducedMotion()
   const items = useCachedPortfolioItems()
-  const featured = items.filter((i) => i.featured).slice(0, 8)
+  const featuredOnly = items.filter((i) => i.featured)
+  const featured = featuredOnly.length > 0 ? featuredOnly.slice(0, 8) : items.slice(0, 8)
   const scroll = useScrollExperience(featured.length)
   const { trackRef, enabled, scrollLengthVh } = useScrollExperienceHost()
 

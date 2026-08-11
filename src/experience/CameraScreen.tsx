@@ -93,8 +93,9 @@ export function CameraScreen() {
     const debug = debugStore.get()
 
     const allItems = getCachedPortfolioItems()
-    const items = allItems.filter((i) => i.featured)
-    const count = items.length || allItems.length
+    const featured = allItems.filter((i) => i.featured)
+    const items = featured.length > 0 ? featured : allItems
+    const count = items.length
     let index = photoIndex(progress, cfg.phases, count)
     if (debug.lcdPreview && debug.forcedPhotoIndex != null) {
       index = Math.min(count - 1, Math.max(-1, debug.forcedPhotoIndex))
