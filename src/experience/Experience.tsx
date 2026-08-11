@@ -44,7 +44,7 @@ function ExperienceCanvas() {
     <Canvas
       dpr={dpr}
       camera={{ fov: cfg.scene.cameraFov, near: 0.1, far: 80, position: [0, 0, 6] }}
-      shadows
+      shadows="percentage"
       gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
       onCreated={({ gl }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping
