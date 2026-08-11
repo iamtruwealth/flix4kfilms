@@ -39,6 +39,16 @@ export function SiteFooter() {
 
       <div className="site-foot-base">
         <p>© {year} FLIX 4K. All rights reserved.</p>
+        <p className="site-foot-credit">
+          Studio model: LowPolyModelsWorld —{' '}
+          <a
+            href="https://creativecommons.org/licenses/by/4.0/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            CC BY 4.0
+          </a>
+        </p>
         <p className="site-foot-mono">MONOCHROME · 4K · FILM</p>
       </div>
     </footer>

@@ -881,6 +881,18 @@ body { color: var(--ink); }
 }
 .site-foot-base p { margin: 0; }
 .site-foot-mono { color: var(--dim); }
+.site-foot-credit {
+  color: var(--faint);
+  font-size: 0.8rem;
+}
+.site-foot-credit a {
+  color: var(--dim);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.site-foot-credit a:hover {
+  color: var(--ink);
+}
 
 /* ------------------------------------------------------------------- mobile */
 @media (max-width: 720px) {
