@@ -25,7 +25,8 @@ export function HomePage() {
   useDebugKeys()
   const reduced = useReducedMotion()
   const items = useCachedPortfolioItems()
-  const scroll = useScrollExperience(items.length)
+  const featured = items.filter((i) => i.featured).slice(0, 8)
+  const scroll = useScrollExperience(featured.length)
   const { trackRef, enabled, scrollLengthVh } = useScrollExperienceHost()
 
   const trackHeight = enabled ? scrollLengthVh : 100
@@ -68,7 +69,7 @@ export function HomePage() {
           <p className="kicker">SELECTED WORK</p>
           <h2>Studies in monochrome.</h2>
         </header>
-        <PortfolioGrid items={items.slice(0, 8)} />
+        <PortfolioGrid items={featured} />
         <footer className="portfolio-foot">
           <p>Continue to the full index →</p>
         </footer>
