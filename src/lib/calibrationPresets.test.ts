@@ -16,11 +16,11 @@ describe('calibrationPresets — environment + dotField', () => {
 
   it('selects exactly the five intended studio objects', () => {
     expect(DEFAULT_CALIBRATION.environment.keepNodes).toEqual([
-      'Um.Flash.01_16',
-      'SoftBox.01_15',
+      'UmFlash01_16',
+      'SoftBox01_15',
       'Ladder_17',
-      'Flash.04_12',
-      'Mic.01_8',
+      'Flash04_12',
+      'Mic01_8',
     ])
   })
 

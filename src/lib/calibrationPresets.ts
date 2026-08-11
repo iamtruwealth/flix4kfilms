@@ -293,11 +293,11 @@ export const DEFAULT_CALIBRATION: CalibrationConfig = {
   environment: {
     enabled: true,
     keepNodes: [
-      'Um.Flash.01_16',
-      'SoftBox.01_15',
+      'UmFlash01_16',
+      'SoftBox01_15',
       'Ladder_17',
-      'Flash.04_12',
-      'Mic.01_8',
+      'Flash04_12',
+      'Mic01_8',
     ],
     radius: 7,
     y: -1.5,
