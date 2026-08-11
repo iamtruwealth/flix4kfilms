@@ -8,6 +8,7 @@ import { SceneCameraRig } from './SceneCameraRig'
 import { StudioSilhouettes } from './StudioSilhouettes'
 import { STUDIO_GLB } from '../lib/studioEnvironment'
 import { useResponsiveQuality } from '../hooks/useResponsiveQuality'
+import { useResponsiveCalibration } from '../hooks/useResponsiveCalibration'
 import { useCalibrationConfig } from '../lib/calibrationStore'
 import { useWebGLSupport } from '../hooks/useWebGLSupport'
 
@@ -38,12 +39,13 @@ export function Experience() {
 
 function ExperienceCanvas() {
   const cfg = useCalibrationConfig()
+  const resp = useResponsiveCalibration(cfg)
   const { dpr } = useResponsiveQuality(cfg.quality.maxDpr)
 
   return (
     <Canvas
       dpr={dpr}
-      camera={{ fov: cfg.scene.cameraFov, near: 0.1, far: 80, position: [0, 0, 6] }}
+      camera={{ fov: resp.scene.cameraFov, near: 0.1, far: 80, position: [0, 0, 6] }}
       shadows="percentage"
       gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
       onCreated={({ gl }) => {

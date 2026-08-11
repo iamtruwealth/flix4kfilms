@@ -7,6 +7,7 @@ import { CameraScreen } from './CameraScreen'
 import { CalibrationGuides } from './CalibrationGuides'
 import { getRawProgress } from '../lib/scrollStore'
 import { useCalibrationConfig, calibrationStore } from '../lib/calibrationStore'
+import { useResponsiveCalibration } from '../hooks/useResponsiveCalibration'
 import { computeCameraScene } from '../hooks/useCameraScene'
 import { cameraHandoff } from '../scroll/scrollState'
 
@@ -26,6 +27,7 @@ export const CAMERA_GLB = './sony_alpha_3.glb'
  */
 export function CameraExperience() {
   const cfg = useCalibrationConfig()
+  const resp = useResponsiveCalibration(cfg)
   const { scene: gltfScene } = useGLTF(CAMERA_GLB)
   const pivotRef = useRef<THREE.Group>(null)
   const frameRef = useRef<THREE.Group>(null)
@@ -54,7 +56,7 @@ export function CameraExperience() {
 
   // Normalization measured from the model's actual bounds — single source.
   const norm = useMemo(() => {
-    const scale = cfg.normalize.scaleOverride || cfg.normalize.targetDiagonal / bounds.diagonal
+    const scale = resp.normalize.scaleOverride || resp.normalize.targetDiagonal / bounds.diagonal
     return { center: bounds.center, scale }
   }, [bounds, cfg])
 

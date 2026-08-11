@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useScrollProgress } from '../lib/scrollStore'
 import { useCalibrationConfig } from '../lib/calibrationStore'
+import { useResponsiveCalibration } from './useResponsiveCalibration'
 import {
   cameraHandoff,
   cameraPan,
@@ -18,11 +19,6 @@ import {
   hintOpacity,
 } from '../scroll/scrollState'
 
-/**
- * Single derived view over the scroll state machine. Everything is computed
- * as a pure function of raw scroll progress + the centralized calibration.
- * Components subscribe once; the 3D loop reads the same numbers each frame.
- */
 export interface ScrollState {
   progress: number
   phase: ReturnType<typeof phaseAt>
@@ -35,25 +31,22 @@ export interface ScrollState {
   screenIntensity: number
   introOpacity: number
   hintOpacity: number
-  /** 0 = camera fully present; 1 = fully receded (camera handoff). */
   handoff: number
-  /** 0 = nav hidden; 1 = fully revealed. */
   navReveal: number
-  /** 0 = portfolio hidden; 1 = fully faded in. */
   portfolioReveal: number
-  /** 3D canvas opacity (1 = camera visible, 0 = gone). */
   stageOpacity: number
 }
 
 export function useScrollExperience(photoCount: number): ScrollState {
   const progress = useScrollProgress()
   const cfg = useCalibrationConfig()
+  const resp = useResponsiveCalibration(cfg)
 
   return useMemo<ScrollState>(() => {
     const count = Math.max(1, photoCount)
-    const phases = cfg.phases
-    const rot = cfg.rotation
-    const scene = cfg.scene
+    const phases = resp.phases
+    const rot = resp.rotation
+    const scene = resp.scene
     return {
       progress,
       phase: phaseAt(progress, phases),
@@ -71,5 +64,5 @@ export function useScrollExperience(photoCount: number): ScrollState {
       portfolioReveal: portfolioReveal(progress, phases),
       stageOpacity: stageOpacity(progress, phases),
     }
-  }, [progress, cfg])
+  }, [progress, resp])
 }
