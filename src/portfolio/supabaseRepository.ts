@@ -386,14 +386,24 @@ export class SupabasePortfolioRepository {
       .eq('slug', slug)
       .single()
     if (catErr || !cat) return []
-    const { data, error } = await this.client
-      .from('videos')
-      .select('*')
-      .eq('category_id', cat.id)
-      .eq('published', true)
-      .order('sort_order', { ascending: true })
-    if (error) throw new Error(error.message)
-    return (data ?? []) as VideoRow[]
+    try {
+      const { data, error } = await this.client
+        .from('videos')
+        .select('*')
+        .eq('category_id', cat.id)
+        .eq('published', true)
+        .order('sort_order', { ascending: true })
+      if (error) throw error
+      return (data ?? []) as VideoRow[]
+    } catch {
+      // category_id column may not exist yet — fall back to all published
+      const { data } = await this.client
+        .from('videos')
+        .select('*')
+        .eq('published', true)
+        .order('sort_order', { ascending: true })
+      return (data ?? []) as VideoRow[]
+    }
   }
 }
 

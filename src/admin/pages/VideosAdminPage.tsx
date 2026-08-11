@@ -44,7 +44,7 @@ export function VideosAdminPage() {
         categoryId: newCatId || null,
         year: new Date().getFullYear().toString(),
         sortOrder: videos.length + 1,
-        published: false,
+        published: true,
         featured: false,
       })
       setNewTitle('')
@@ -74,7 +74,7 @@ export function VideosAdminPage() {
           categoryId: catId,
           year: '2026',
           sortOrder: videos.length + 1,
-          published: false,
+          published: true,
           featured: false,
         })
       } catch (err) {
