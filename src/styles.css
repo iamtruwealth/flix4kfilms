@@ -1718,6 +1718,12 @@ body { color: var(--ink); }
   display: block;
 }
 
+.video-embed--placeholder-dark {
+  width: 100%;
+  height: 100%;
+  background: #111;
+}
+
 .video-embed__play {
   position: absolute;
   inset: 0;
