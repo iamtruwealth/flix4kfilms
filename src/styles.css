@@ -36,6 +36,23 @@ body { color: var(--ink); }
   background: #000;
 }
 
+/* Dot field — one canvas behind the WebGL stage */
+.dot-field {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* The 3D canvas wrapper paints above the dot field */
+.stage-3d {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
 /* Scroll track — maps document scroll → progress (height from calibration). */
 .track { position: relative; z-index: 1; pointer-events: none; }
 

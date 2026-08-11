@@ -8,6 +8,7 @@ import { BrandBar, IntroOverlay, LookAgainOverlay, ScrollHint } from '../ui/Type
 import { PortfolioGrid } from '../ui/PortfolioGrid'
 import { DebugUI } from '../ui/DebugUI'
 import { ViewportCrosshair } from '../experience/CalibrationGuides'
+import { HeroDotField } from '../ui/HeroDotField'
 
 // The 3D scene (three + drei) is the heavy part — split it so the page shell
 // paints immediately and the model loads async behind the intro overlay.
@@ -37,9 +38,12 @@ export function HomePage() {
         style={{ opacity: scroll.stageOpacity }}
         aria-hidden={stageGone}
       >
-        <Suspense fallback={null}>
-          <Experience />
-        </Suspense>
+        <HeroDotField />
+        <div className="stage-3d">
+          <Suspense fallback={null}>
+            <Experience />
+          </Suspense>
+        </div>
       </div>
 
       <div ref={trackRef} className="track" style={{ height: `${trackHeight}vh` }} />
