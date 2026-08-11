@@ -55,6 +55,8 @@ export interface VideoRow {
   description: string
   video_path: string | null
   thumbnail_path: string | null
+  youtube_url: string | null
+  category_id: string | null
   sort_order: number
   published: boolean
   featured: boolean
@@ -101,6 +103,8 @@ export function mapVideoRow(row: VideoRow, baseUrl?: string): VideoItem {
     thumbnailUrl: row.thumbnail_path
       ? transformedImageUrl('portfolio-thumbnails', row.thumbnail_path, 640, 360, baseUrl)
       : null,
+    youtubeUrl: row.youtube_url ?? null,
+    categoryId: row.category_id ?? null,
     duration: null,
     sortOrder: row.sort_order,
     published: row.published,
@@ -133,6 +137,11 @@ export class SupabasePortfolioRepository {
 
   async getVideos(): Promise<VideoItem[]> {
     const rows = await this.fetchVideos({ publishedOnly: true })
+    return rows.map((r) => mapVideoRow(r)).sort((a, b) => a.sortOrder - b.sortOrder)
+  }
+
+  async getVideosByCategory(slug: string): Promise<VideoItem[]> {
+    const rows = await this.fetchVideosByCategorySlug(slug)
     return rows.map((r) => mapVideoRow(r)).sort((a, b) => a.sortOrder - b.sortOrder)
   }
 
@@ -237,6 +246,8 @@ export class SupabasePortfolioRepository {
         description: input.description,
         video_path: input.videoPath,
         thumbnail_path: input.thumbnailPath,
+        youtube_url: input.youtubeUrl,
+        category_id: input.categoryId,
         year: input.year,
         sort_order: input.sortOrder,
         published: input.published,
@@ -359,6 +370,23 @@ export class SupabasePortfolioRepository {
     if (error) throw new Error(error.message)
     return (data ?? []) as VideoRow[]
   }
+
+  private async fetchVideosByCategorySlug(slug: string): Promise<VideoRow[]> {
+    const { data: cat, error: catErr } = await this.client
+      .from('portfolio_categories')
+      .select('id')
+      .eq('slug', slug)
+      .single()
+    if (catErr || !cat) return []
+    const { data, error } = await this.client
+      .from('videos')
+      .select('*')
+      .eq('category_id', cat.id)
+      .eq('published', true)
+      .order('sort_order', { ascending: true })
+    if (error) throw new Error(error.message)
+    return (data ?? []) as VideoRow[]
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -388,6 +416,8 @@ function toVideoPatch(patch: Partial<AdminVideoInput>): Record<string, unknown> 
   if (patch.description !== undefined) out.description = patch.description
   if (patch.videoPath !== undefined) out.video_path = patch.videoPath
   if (patch.thumbnailPath !== undefined) out.thumbnail_path = patch.thumbnailPath
+  if (patch.youtubeUrl !== undefined) out.youtube_url = patch.youtubeUrl
+  if (patch.categoryId !== undefined) out.category_id = patch.categoryId
   if (patch.year !== undefined) out.year = patch.year
   if (patch.sortOrder !== undefined) out.sort_order = patch.sortOrder
   if (patch.published !== undefined) out.published = patch.published

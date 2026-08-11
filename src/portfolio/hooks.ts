@@ -90,6 +90,25 @@ export function useVideos(): VideoItem[] {
   return videos
 }
 
+export function useVideosByCategory(slug: string): VideoItem[] {
+  const [videos, setVideos] = useState<VideoItem[]>([])
+  const cacheSource = useCacheSource()
+
+  useEffect(() => {
+    let alive = true
+    getPortfolioRepository()
+      .getVideosByCategory(slug)
+      .then((list) => {
+        if (alive) setVideos(list)
+      })
+    return () => {
+      alive = false
+    }
+  }, [slug, cacheSource])
+
+  return videos
+}
+
 export function useFeaturedItems(): PortfolioItem[] {
   const [items, setItems] = useState<PortfolioItem[]>([])
   const cacheSource = useCacheSource()

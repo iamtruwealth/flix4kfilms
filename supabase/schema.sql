@@ -63,6 +63,8 @@ create table if not exists public.videos (
   description    text not null default '',
   video_path     text,
   thumbnail_path text,
+  youtube_url    text,
+  category_id    uuid references public.portfolio_categories (id) on delete set null,
   year           text not null default '',
   sort_order     integer not null default 0,
   published      boolean not null default false,

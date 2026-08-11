@@ -52,6 +52,10 @@ export interface VideoItem {
   /** Remote-ready video URL; null until real content exists. */
   videoUrl: string | null
   thumbnailUrl: string | null
+  /** YouTube embed URL (e.g. https://www.youtube.com/watch?v=...). */
+  youtubeUrl: string | null
+  /** Category this video belongs to. */
+  categoryId: string | null
   duration: string | null
   sortOrder: number
   published: boolean
@@ -80,6 +84,8 @@ export interface AdminVideoInput {
   description: string
   videoPath: string | null
   thumbnailPath: string | null
+  youtubeUrl: string | null
+  categoryId: string | null
   year: string
   sortOrder: number
   published: boolean

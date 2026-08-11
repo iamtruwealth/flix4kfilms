@@ -30,6 +30,7 @@ export interface PortfolioRepository {
   getPortfolioItems(categoryId?: string): Promise<PortfolioItem[]>
   getPortfolioCategories(): Promise<PortfolioCategory[]>
   getVideos(): Promise<VideoItem[]>
+  getVideosByCategory(slug: string): Promise<VideoItem[]>
   getFeaturedItems(): Promise<PortfolioItem[]>
   getCachedPortfolioItems(): PortfolioItem[]
 

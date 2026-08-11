@@ -28,11 +28,12 @@ function isCoarsePointer(): boolean {
 export function HeroDotField() {
   const cfg = useCalibrationConfig()
   const reduced = useReducedMotion()
-  const { dpr } = useResponsiveQuality(cfg.dotField.maxDpr)
+  const { dpr, isMobile } = useResponsiveQuality(cfg.dotField.maxDpr)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   const df = cfg.dotField
   const staticField = dotFieldStatic(reduced, isCoarsePointer())
+  const hidden = isMobile || !df.enabled
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -173,7 +174,7 @@ export function HeroDotField() {
     }
   }, [df.enabled, df.gap, df.radius, df.color, df.baseAlpha, df.hoverRadius, df.hoverStrength, df.swarm, df.attraction, df.spring, df.damping, df.maxSpeed, dpr, staticField])
 
-  if (!df.enabled) return null
+  if (hidden) return null
 
   return (
     <canvas

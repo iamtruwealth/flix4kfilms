@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import * as THREE from 'three'
 import { useGLTF } from '@react-three/drei'
 import { useCalibrationConfig } from '../lib/calibrationStore'
+import { useResponsiveQuality } from '../hooks/useResponsiveQuality'
 import {
   STUDIO_GLB,
   applyStudioVisibility,
@@ -20,7 +21,10 @@ import {
 export function StudioSilhouettes() {
   const cfg = useCalibrationConfig()
   const env = cfg.environment
+  const { isMobile } = useResponsiveQuality(2)
   const { scene } = useGLTF(STUDIO_GLB)
+
+  const hidden = isMobile || !env.enabled
 
   // One fresh clone per env change — cloning is cheap (geometry is shared with
   // the cache) and guarantees `applyStudioVisibility` re-traverses a complete
@@ -55,7 +59,7 @@ export function StudioSilhouettes() {
     [objects, env.radius, env.arc, env.y],
   )
 
-  if (!env.enabled || objects.length === 0) return null
+  if (hidden || objects.length === 0) return null
 
   return (
     <group>

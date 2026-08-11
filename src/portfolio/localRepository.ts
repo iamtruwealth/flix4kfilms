@@ -54,6 +54,16 @@ export class LocalPortfolioRepository {
     )
   }
 
+  getVideosByCategory(slug: string): Promise<VideoItem[]> {
+    const cat = this.categories.find((c) => c.slug === slug)
+    if (!cat) return Promise.resolve([])
+    return Promise.resolve(
+      [...this.videos]
+        .filter((v) => v.published && v.categoryId === cat.id)
+        .sort((a, b) => a.sortOrder - b.sortOrder),
+    )
+  }
+
   getFeaturedItems(): Promise<PortfolioItem[]> {
     return this.getPortfolioItems().then((list) => list.filter((i) => i.featured))
   }
@@ -150,6 +160,8 @@ export class LocalPortfolioRepository {
       description: input.description,
       videoUrl: input.videoPath,
       thumbnailUrl: input.thumbnailPath,
+      youtubeUrl: input.youtubeUrl,
+      categoryId: input.categoryId,
       duration: null,
       sortOrder: input.sortOrder,
       published: input.published,
@@ -170,6 +182,8 @@ export class LocalPortfolioRepository {
       videoUrl: patch.videoPath !== undefined ? patch.videoPath : existing.videoUrl,
       thumbnailUrl:
         patch.thumbnailPath !== undefined ? patch.thumbnailPath : existing.thumbnailUrl,
+      youtubeUrl: patch.youtubeUrl !== undefined ? patch.youtubeUrl : existing.youtubeUrl,
+      categoryId: patch.categoryId !== undefined ? patch.categoryId : existing.categoryId,
       sortOrder: patch.sortOrder ?? existing.sortOrder,
       published: patch.published ?? existing.published,
       featured: patch.featured ?? existing.featured,

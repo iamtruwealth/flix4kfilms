@@ -179,6 +179,8 @@ const VIDEOS: VideoRow[] = [
     description: 'A reel',
     video_path: 'videos/weddings/2026/reel.mp4',
     thumbnail_path: null,
+    youtube_url: null,
+    category_id: null,
     sort_order: 1,
     published: true,
     featured: false,
