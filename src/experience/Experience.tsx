@@ -5,12 +5,15 @@ import { useGLTF } from '@react-three/drei'
 import { SceneEnvironment } from './SceneEnvironment'
 import { CameraExperience, CAMERA_GLB } from './CameraExperience'
 import { SceneCameraRig } from './SceneCameraRig'
+import { StudioSilhouettes } from './StudioSilhouettes'
+import { STUDIO_GLB } from '../lib/studioEnvironment'
 import { useResponsiveQuality } from '../hooks/useResponsiveQuality'
 import { useCalibrationConfig } from '../lib/calibrationStore'
 import { useWebGLSupport } from '../hooks/useWebGLSupport'
 
-// Warm the GLB so the camera is ready the moment the canvas mounts.
+// Warm the GLBs so the camera and studio props are ready the moment the canvas mounts.
 useGLTF.preload(CAMERA_GLB)
+useGLTF.preload(STUDIO_GLB)
 
 /**
  * The full deterministic 3D experience:
@@ -42,14 +45,14 @@ function ExperienceCanvas() {
       dpr={dpr}
       camera={{ fov: cfg.scene.cameraFov, near: 0.1, far: 80, position: [0, 0, 6] }}
       shadows
-      gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
+      gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
       onCreated={({ gl }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping
       }}
     >
-      <color attach="background" args={['#000000']} />
       <Suspense fallback={null}>
         <CameraExperience />
+        <StudioSilhouettes />
       </Suspense>
       <SceneEnvironment />
       <SceneCameraRig />
