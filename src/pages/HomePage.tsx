@@ -1,4 +1,5 @@
 import { lazy, Suspense } from 'react'
+import { Link } from 'react-router-dom'
 import { useScrollExperience } from '../hooks/useScrollExperience'
 import { useScrollExperienceHost } from '../hooks/useScrollExperienceHost'
 import { useDebugKeys } from '../hooks/useDebugKeys'
@@ -71,7 +72,7 @@ export function HomePage() {
         </header>
         <PortfolioGrid items={featured} />
         <footer className="portfolio-foot">
-          <p>Continue to the full index →</p>
+          <p><Link to="/portfolio">Continue to the full portfolio →</Link></p>
         </footer>
       </section>
 
