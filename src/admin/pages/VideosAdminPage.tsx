@@ -1,8 +1,16 @@
-import { useState } from 'react'
+import { useState, type FormEvent } from 'react'
 import { useAdminVideos, useAdminCategories, refreshAdminData } from '../adminData'
 import { UploadDropzone, type UploadedObject } from '../UploadDropzone'
 import { getPortfolioRepository } from '../../portfolio/repository'
 import type { VideoItem } from '../../portfolio/types'
+
+function slugify(s: string) {
+  return s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+    .slice(0, 80)
+}
 
 export function VideosAdminPage() {
   const videos = useAdminVideos()
@@ -13,6 +21,42 @@ export function VideosAdminPage() {
   const [ytUrl, setYtUrl] = useState('')
   const [catId, setCatId] = useState('')
   const [vTitle, setVTitle] = useState('')
+
+  const [newTitle, setNewTitle] = useState('')
+  const [newYtUrl, setNewYtUrl] = useState('')
+  const [newCatId, setNewCatId] = useState('')
+  const [showForm, setShowForm] = useState(false)
+
+  const addYtVideo = async (e: FormEvent) => {
+    e.preventDefault()
+    setError(null)
+    setBusy(true)
+    try {
+      const slug = slugify(newTitle) + '-' + Date.now().toString(36)
+      await getPortfolioRepository().createVideo({
+        title: newTitle,
+        slug,
+        description: '',
+        videoPath: null,
+        thumbnailPath: null,
+        youtubeUrl: newYtUrl || null,
+        categoryId: newCatId || null,
+        year: new Date().getFullYear().toString(),
+        sortOrder: videos.length + 1,
+        published: false,
+        featured: false,
+      })
+      setNewTitle('')
+      setNewYtUrl('')
+      setNewCatId('')
+      setShowForm(false)
+      refreshAdminData()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not create video.')
+    } finally {
+      setBusy(false)
+    }
+  }
 
   const onUploaded = async (objects: UploadedObject[]) => {
     setError(null)
@@ -101,6 +145,51 @@ export function VideosAdminPage() {
       </header>
 
       {error ? <p className="admin-error admin-error-block" role="alert">{error}</p> : null}
+
+      <div className="admin-card">
+        <h2 className="admin-card-title">
+          <button
+            type="button"
+            className="admin-btn admin-btn-sm"
+            onClick={() => setShowForm(!showForm)}
+          >
+            {showForm ? 'Cancel' : '+ Add YouTube Video'}
+          </button>
+        </h2>
+        {showForm && (
+          <form onSubmit={(e) => void addYtVideo(e)} className="admin-form">
+            <input
+              className="admin-input"
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              placeholder="Video title"
+              required
+            />
+            <input
+              className="admin-input"
+              value={newYtUrl}
+              onChange={(e) => setNewYtUrl(e.target.value)}
+              placeholder="YouTube URL (e.g. https://www.youtube.com/watch?v=...)"
+              required
+            />
+            <select
+              className="admin-input"
+              value={newCatId}
+              onChange={(e) => setNewCatId(e.target.value)}
+            >
+              <option value="">No category</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+            <button type="submit" className="admin-btn" disabled={busy}>
+              Create
+            </button>
+          </form>
+        )}
+      </div>
 
       <UploadDropzone
         bucket="portfolio-videos"
