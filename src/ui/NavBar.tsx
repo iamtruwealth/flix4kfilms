@@ -96,7 +96,7 @@ export function NavBar() {
                   aria-controls="nav-categories"
                   onClick={() => setOpenDebounced(!open)}
                   onMouseEnter={() => setOpenDebounced(true, 80)}
-                  onMouseLeave={() => setOpenDebounced(false, 400)}
+                  onMouseLeave={() => setOpenDebounced(false, 4000)}
                 >
                   PORTFOLIO
                   <span className="nav-caret" aria-hidden="true" />
@@ -133,7 +133,7 @@ export function NavBar() {
         id="nav-categories"
         className={`nav-categories${open ? ' nav-categories-open' : ''}`}
         onMouseEnter={() => setOpenDebounced(true)}
-        onMouseLeave={() => setOpenDebounced(false, 200)}
+        onMouseLeave={() => setOpenDebounced(false, 4000)}
         hidden={!open && !reduced}
       >
         <ul className="nav-categories-list">
