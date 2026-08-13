@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import type { SeoEntry } from './seoContent'
 
 const CANONICAL_BASE = 'https://flix4kfilms.art'
+const SOCIAL_IMAGE = `${CANONICAL_BASE}/og-image.jpg`
 
 function absoluteUrl(path: string) {
   return new URL(path, CANONICAL_BASE).toString()
@@ -41,6 +42,7 @@ export function SeoHead({ entry }: { entry: SeoEntry }) {
     setMeta('twitter:card', 'summary_large_image')
     setMeta('twitter:title', entry.title)
     setMeta('twitter:description', entry.description)
+    setMeta('twitter:image', SOCIAL_IMAGE)
     setMeta('robots', 'index,follow')
     setCanonical(absoluteUrl(entry.path))
   }, [entry])
@@ -49,15 +51,19 @@ export function SeoHead({ entry }: { entry: SeoEntry }) {
 }
 
 export function AdminSeoHead() {
+  return <NoIndexSeoHead title="FLIX 4K Admin" />
+}
+
+export function NoIndexSeoHead({ title = 'FLIX 4K' }: { title?: string }) {
   useEffect(() => {
-    document.title = 'FLIX 4K Admin'
+    document.title = title
 
     document.head
       .querySelectorAll('meta[name="description"], meta[property^="og:"], meta[name^="twitter:"], link[rel="canonical"]')
       .forEach((element) => element.remove())
 
     setMeta('robots', 'noindex,nofollow')
-  }, [])
+  }, [title])
 
   return null
 }

@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react'
 import { HashRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { AppShell } from './ui/AppShell'
 import { HomePage } from './pages/HomePage'
-import { AdminSeoHead, SeoHead } from './seo/SeoHead'
+import { AdminSeoHead, NoIndexSeoHead, SeoHead } from './seo/SeoHead'
 import { SEO_ENTRIES } from './seo/seoContent'
 import { JsonLd } from './seo/JsonLd'
 import { buildBreadcrumbSchema, buildOrganizationSchema, buildWebSiteSchema } from './seo/schema'
@@ -53,14 +53,14 @@ function Lazy({ children }: { children: React.ReactNode }) {
 
 function PublicShell() {
   const { pathname } = useLocation()
-  const entry = SEO_ENTRIES[pathname] ?? SEO_ENTRIES['/']
-  const breadcrumb = buildBreadcrumbSchema(pathname)
+  const entry = SEO_ENTRIES[pathname]
+  const breadcrumb = entry ? buildBreadcrumbSchema(pathname) : null
 
   return (
     <>
-      <SeoHead entry={entry} />
-      {pathname === '/' ? <JsonLd data={buildWebSiteSchema()} /> : null}
-      {pathname === '/' ? <JsonLd data={buildOrganizationSchema()} /> : null}
+      {entry ? <SeoHead entry={entry} /> : <NoIndexSeoHead />}
+      {entry && pathname === '/' ? <JsonLd data={buildWebSiteSchema()} /> : null}
+      {entry && pathname === '/' ? <JsonLd data={buildOrganizationSchema()} /> : null}
       {breadcrumb ? <JsonLd data={breadcrumb} /> : null}
       <AppShell />
     </>

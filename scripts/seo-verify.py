@@ -57,6 +57,8 @@ EXPECTED_DESCRIPTION = (
     "and film productions across metro Atlanta. Book a professional photo and video crew."
 )
 EXPECTED_CANONICAL = f"{BASE_URL}/"
+EXPECTED_SOCIAL_IMAGE = f"{BASE_URL}/og-image.jpg"
+EXPECTED_SCHEMA_TYPES = {"WebSite", "Organization"}
 
 
 class NoRedirectHandler(HTTPRedirectHandler):
@@ -153,6 +155,55 @@ def check(label: str, passed: bool, detail: str = "") -> bool:
     return passed
 
 
+def parse_json_ld_objects(head: HeadParser) -> list[dict[str, object]]:
+    objects = []
+    for raw in head.json_ld:
+        try:
+            value = json.loads(raw)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(value, dict):
+            objects.append(value)
+    return objects
+
+
+def homepage_assertions(head: HeadParser) -> list[str]:
+    failures = []
+    if head.title != EXPECTED_TITLE:
+        failures.append("title")
+    if head.meta.get(("name", "description")) != EXPECTED_DESCRIPTION:
+        failures.append("description")
+    if head.links.get("canonical") != EXPECTED_CANONICAL:
+        failures.append("canonical")
+    if head.meta.get(("property", "og:image")) != EXPECTED_SOCIAL_IMAGE:
+        failures.append("OG image")
+    if head.meta.get(("name", "twitter:image")) != EXPECTED_SOCIAL_IMAGE:
+        failures.append("Twitter image")
+    schema_types = {value.get("@type") for value in parse_json_ld_objects(head)}
+    if not EXPECTED_SCHEMA_TYPES.issubset(schema_types):
+        failures.append("JSON-LD schema types")
+    return failures
+
+
+def route_fallback_assertion(head: HeadParser, path: str, homepage: str) -> bool:
+    expected_title = ROUTE_TITLES[path]
+    expected_canonical = f"{BASE_URL}{path}"
+    return (
+        head.title == expected_title
+        and head.links.get("canonical") == expected_canonical
+        and head.title != EXPECTED_TITLE
+        and homepage != ""
+    )
+
+
+def redirect_assertion(result: FetchResult) -> bool:
+    return result.status == 200 and result.final_url == result.requested_url
+
+
+def content_type_assertion(content_type: str, expected_types: tuple[str, ...]) -> bool:
+    return content_type.split(";", 1)[0].lower() in expected_types
+
+
 def parse_base_url(argv: list[str] | None = None) -> str:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -177,7 +228,7 @@ def main() -> int:
     passed = True
 
     homepage_result = fetch(base_url, "/")
-    homepage_url_ok = homepage_result.final_url == homepage_result.requested_url
+    homepage_url_ok = redirect_assertion(homepage_result)
     passed &= check(
         "GET / returns 200 without redirect",
         homepage_result.status == 200 and homepage_url_ok,
@@ -191,7 +242,7 @@ def main() -> int:
     for path in PUBLIC_ROUTES[1:]:
         result = fetch(base_url, path)
         statuses[path] = result.status
-        url_ok = result.final_url == result.requested_url
+        url_ok = redirect_assertion(result)
         passed &= check(
             f"GET {path} returns 200 without redirect",
             result.status == 200 and url_ok,
@@ -201,13 +252,7 @@ def main() -> int:
         if result.status == 200 and url_ok:
             route_head = HeadParser()
             route_head.feed(result.body)
-            expected_title = ROUTE_TITLES[path]
-            expected_canonical = f"{BASE_URL}{path}"
-            route_specific = (
-                route_head.title == expected_title
-                and route_head.links.get("canonical") == expected_canonical
-                and result.body != homepage
-            )
+            route_specific = route_fallback_assertion(route_head, path, homepage) and result.body != homepage
             passed &= check(
                 f"{path} is not a generic homepage fallback",
                 route_specific,
@@ -217,7 +262,7 @@ def main() -> int:
     for path, expected_types in REQUIRED_ASSETS.items():
         result = fetch(base_url, path)
         statuses[path] = result.status
-        url_ok = result.final_url == result.requested_url
+        url_ok = redirect_assertion(result)
         passed &= check(
             f"GET {path} returns 200 without redirect",
             result.status == 200 and url_ok,
@@ -227,39 +272,14 @@ def main() -> int:
         if result.status == 200 and url_ok:
             passed &= check(
                 f"{path} has the expected content type",
-                result.content_type.split(";", 1)[0].lower() in expected_types,
+                content_type_assertion(result.content_type, expected_types),
                 f"content-type={result.content_type or 'missing'}",
             )
 
     head = HeadParser()
     head.feed(homepage)
-    passed &= check("Static title is present", head.title == EXPECTED_TITLE, repr(head.title))
-    passed &= check(
-        "Static description is present",
-        head.meta.get(("name", "description")) == EXPECTED_DESCRIPTION,
-        repr(head.meta.get(("name", "description"), "missing")),
-    )
-    passed &= check(
-        "Static canonical is present",
-        head.links.get("canonical") == EXPECTED_CANONICAL,
-        repr(head.links.get("canonical", "missing")),
-    )
-    og_image = head.meta.get(("property", "og:image"), "")
-    passed &= check("Static OG image is present", bool(og_image), repr(og_image or "missing"))
-
-    valid_json_ld = []
-    for raw in head.json_ld:
-        try:
-            value = json.loads(raw)
-        except json.JSONDecodeError:
-            continue
-        if isinstance(value, dict):
-            valid_json_ld.append(value)
-    passed &= check(
-        "Static JSON-LD fallback is present",
-        bool(valid_json_ld),
-        f"{len(valid_json_ld)} valid object(s)",
-    )
+    for requirement in ("title", "description", "canonical", "OG image", "Twitter image", "JSON-LD schema types"):
+        passed &= check(f"Static {requirement} is present", requirement not in homepage_assertions(head))
 
     # Make it explicit in CI output that a passing status check is not route
     # indexability proof when the server returns the site's generic shell.

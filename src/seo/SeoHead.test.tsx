@@ -3,7 +3,7 @@
 import { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, describe, expect, it } from 'vitest'
-import { AdminSeoHead, SeoHead } from './SeoHead'
+import { AdminSeoHead, NoIndexSeoHead, SeoHead } from './SeoHead'
 
 ;(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true
 
@@ -44,6 +44,7 @@ describe('SeoHead', () => {
     expect(document.head.querySelector<HTMLMetaElement>('meta[name="twitter:card"]')?.content).toBe('summary_large_image')
     expect(document.head.querySelector<HTMLMetaElement>('meta[name="twitter:title"]')?.content).toBe(entry.title)
     expect(document.head.querySelector<HTMLMetaElement>('meta[name="twitter:description"]')?.content).toBe(entry.description)
+    expect(document.head.querySelector<HTMLMetaElement>('meta[name="twitter:image"]')?.content).toBe('https://flix4kfilms.art/og-image.jpg')
     expect(document.head.querySelector<HTMLMetaElement>('meta[name="robots"]')?.content).toBe('index,follow')
     expect(document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.href).toBe('https://flix4kfilms.art/portfolio')
 
@@ -62,6 +63,18 @@ describe('SeoHead', () => {
     expect(document.head.querySelector('meta[name="description"]')).toBeNull()
     expect(document.head.querySelector('meta[property="og:title"]')).toBeNull()
     expect(document.head.querySelector('meta[name="twitter:title"]')).toBeNull()
+    expect(document.head.querySelector('link[rel="canonical"]')).toBeNull()
+    expect(document.head.querySelector<HTMLMetaElement>('meta[name="robots"]')?.content).toBe('noindex,nofollow')
+  })
+
+  it('marks unknown public routes noindex without retaining public metadata', () => {
+    render(<SeoHead entry={entry} />)
+    act(() => root?.render(<NoIndexSeoHead />))
+
+    expect(document.title).toBe('FLIX 4K')
+    expect(document.head.querySelector('meta[name="description"]')).toBeNull()
+    expect(document.head.querySelector('meta[property="og:title"]')).toBeNull()
+    expect(document.head.querySelector('meta[name="twitter:image"]')).toBeNull()
     expect(document.head.querySelector('link[rel="canonical"]')).toBeNull()
     expect(document.head.querySelector<HTMLMetaElement>('meta[name="robots"]')?.content).toBe('noindex,nofollow')
   })
