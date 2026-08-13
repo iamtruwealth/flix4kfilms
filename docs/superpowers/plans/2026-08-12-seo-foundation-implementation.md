@@ -259,6 +259,8 @@ git commit -m "feat(seo): add truthful JSON-LD business schemas"
 
 ### Task 4: Add Crawl Files and Social Preview Asset
 
+**Dependency:** Execute Task 5 first. The sitemap and canonical URL paths must use only the public route strategy verified by Task 5.
+
 **Files:**
 - Create: `public/robots.txt`
 - Create: `public/sitemap.xml`
@@ -305,7 +307,7 @@ Include only public URLs that exist in the current app:
 </urlset>
 ```
 
-Do not claim these clean URLs are indexable until the route architecture is verified in production.
+Use only the route paths confirmed by Task 5. Do not claim clean URLs are indexable until the route architecture is verified in production.
 
 - [ ] **Step 4: Add static OG fallback tags**
 
