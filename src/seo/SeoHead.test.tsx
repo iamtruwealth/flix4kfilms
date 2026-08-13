@@ -32,8 +32,19 @@ function render(element: React.ReactNode) {
   act(() => root?.render(element))
 }
 
+function addStaticHomepageSchemas() {
+  for (const schemaType of ['WebSite', 'Organization']) {
+    const script = document.createElement('script')
+    script.type = 'application/ld+json'
+    script.dataset.homepageSchema = schemaType
+    script.textContent = JSON.stringify({ '@type': schemaType })
+    document.head.appendChild(script)
+  }
+}
+
 describe('SeoHead', () => {
   it('upserts all public head metadata without duplicating tags', () => {
+    addStaticHomepageSchemas()
     render(<SeoHead entry={entry} />)
 
     expect(document.title).toBe(entry.title)
@@ -47,6 +58,7 @@ describe('SeoHead', () => {
     expect(document.head.querySelector<HTMLMetaElement>('meta[name="twitter:image"]')?.content).toBe('https://flix4kfilms.art/og-image.jpg')
     expect(document.head.querySelector<HTMLMetaElement>('meta[name="robots"]')?.content).toBe('index,follow')
     expect(document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.href).toBe('https://flix4kfilms.art/portfolio')
+    expect(document.head.querySelectorAll('script[data-homepage-schema]')).toHaveLength(2)
 
     act(() => root?.render(<SeoHead entry={entry} />))
 
@@ -56,6 +68,7 @@ describe('SeoHead', () => {
   })
 
   it('removes public metadata and marks admin pages noindex', () => {
+    addStaticHomepageSchemas()
     render(<SeoHead entry={entry} />)
     act(() => root?.render(<AdminSeoHead />))
 
@@ -64,10 +77,12 @@ describe('SeoHead', () => {
     expect(document.head.querySelector('meta[property="og:title"]')).toBeNull()
     expect(document.head.querySelector('meta[name="twitter:title"]')).toBeNull()
     expect(document.head.querySelector('link[rel="canonical"]')).toBeNull()
+    expect(document.head.querySelectorAll('script[data-homepage-schema]')).toHaveLength(0)
     expect(document.head.querySelector<HTMLMetaElement>('meta[name="robots"]')?.content).toBe('noindex,nofollow')
   })
 
   it('marks unknown public routes noindex without retaining public metadata', () => {
+    addStaticHomepageSchemas()
     render(<SeoHead entry={entry} />)
     act(() => root?.render(<NoIndexSeoHead />))
 
@@ -76,6 +91,7 @@ describe('SeoHead', () => {
     expect(document.head.querySelector('meta[property="og:title"]')).toBeNull()
     expect(document.head.querySelector('meta[name="twitter:image"]')).toBeNull()
     expect(document.head.querySelector('link[rel="canonical"]')).toBeNull()
+    expect(document.head.querySelectorAll('script[data-homepage-schema]')).toHaveLength(0)
     expect(document.head.querySelector<HTMLMetaElement>('meta[name="robots"]')?.content).toBe('noindex,nofollow')
   })
 })

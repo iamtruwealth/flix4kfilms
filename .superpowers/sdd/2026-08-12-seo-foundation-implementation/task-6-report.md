@@ -201,3 +201,32 @@ The built verifier's static checks pass, including canonical, OG image, Twitter 
 ### Commit
 
 Commit: generated for this fix set; the final hash is recorded in the task response.
+
+## Scoped Schema Leakage Fix
+
+### Status
+
+Resolved the remaining scoped finding. Static homepage `WebSite` and `Organization` JSON-LD scripts are now marked with `data-homepage-schema` in `index.html`. `NoIndexSeoHead`, used by both unknown public hash routes and admin routes, removes those scripts with the existing noindex metadata cleanup. Public `SeoHead` leaves them intact for the homepage fallback.
+
+### Regression Coverage
+
+Extended `src/seo/SeoHead.test.tsx` to assert that:
+
+- homepage/public metadata retains both static homepage schema scripts;
+- admin noindex cleanup removes both schema scripts;
+- unknown public noindex cleanup removes both schema scripts.
+
+The focused suite first failed with two noindex-route failures and then passed after the cleanup change.
+
+### Verification
+
+| Check | Result |
+|---|---|
+| `npx vitest run src/seo/SeoHead.test.tsx` | PASS; 3 tests |
+| `npx vitest run` | PASS; 17 files, 125 tests |
+| `npx tsc -b` | PASS; exit 0 |
+| `npx vite build` | PASS; 697 modules transformed |
+| `npx oxlint` | PASS; 0 errors, 14 pre-existing warnings |
+| `python3 scripts/test-seo-verify.py` | PASS; 8 tests |
+
+The existing clean-route HashRouter fallback and Vite preview `camera.ico` MIME behavior remain unchanged concerns.

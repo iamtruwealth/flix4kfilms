@@ -59,7 +59,9 @@ export function NoIndexSeoHead({ title = 'FLIX 4K' }: { title?: string }) {
     document.title = title
 
     document.head
-      .querySelectorAll('meta[name="description"], meta[property^="og:"], meta[name^="twitter:"], link[rel="canonical"]')
+      .querySelectorAll(
+        'meta[name="description"], meta[property^="og:"], meta[name^="twitter:"], link[rel="canonical"], script[data-homepage-schema]',
+      )
       .forEach((element) => element.remove())
 
     setMeta('robots', 'noindex,nofollow')
