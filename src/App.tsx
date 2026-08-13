@@ -1,8 +1,8 @@
-import { lazy, Suspense, useEffect } from 'react'
+import { lazy, Suspense } from 'react'
 import { HashRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { AppShell } from './ui/AppShell'
 import { HomePage } from './pages/HomePage'
-import { SeoHead } from './seo/SeoHead'
+import { AdminSeoHead, SeoHead } from './seo/SeoHead'
 import { SEO_ENTRIES } from './seo/seoContent'
 
 const BookPage = lazy(() => import('./pages/BookPage').then((m) => ({ default: m.BookPage })))
@@ -61,28 +61,6 @@ function PublicShell() {
   )
 }
 
-function AdminSeo() {
-  useEffect(() => {
-    document.title = 'FLIX 4K Admin'
-
-    document.head
-      .querySelectorAll('meta[name="description"], meta[property^="og:"], meta[name^="twitter:"], link[rel="canonical"]')
-      .forEach((element) => element.remove())
-
-    let element = document.head.querySelector<HTMLMetaElement>('meta[name="robots"]')
-
-    if (!element) {
-      element = document.createElement('meta')
-      element.name = 'robots'
-      document.head.appendChild(element)
-    }
-
-    element.content = 'noindex,nofollow'
-  }, [])
-
-  return null
-}
-
 function App() {
   return (
     <HashRouter>
@@ -96,8 +74,8 @@ function App() {
           <Route path="/about" element={<Lazy><AboutPage /></Lazy>} />
           <Route path="*" element={<Lazy><NotFoundPage /></Lazy>} />
         </Route>
-        <Route path="/admin/login" element={<><AdminSeo /><Lazy><LoginPage /></Lazy></>} />
-        <Route path="/admin" element={<><AdminSeo /><Lazy><ProtectedRoute /></Lazy></>}>
+        <Route path="/admin/login" element={<><AdminSeoHead /><Lazy><LoginPage /></Lazy></>} />
+        <Route path="/admin/*" element={<><AdminSeoHead /><Lazy><ProtectedRoute /></Lazy></>}>
           <Route element={<Lazy><AdminLayout /></Lazy>}>
             <Route index element={<Lazy><OverviewPage /></Lazy>} />
             <Route path="photos" element={<Lazy><PhotosPage /></Lazy>} />

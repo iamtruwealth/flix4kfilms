@@ -80,3 +80,61 @@ Result: PASS with no whitespace errors.
 
 - `SeoHead` behavior is integrated into the application and type/build verified, but the repository does not include a DOM test environment dependency for component-level head assertions.
 - The existing lint warnings and Vite chunk-size warning remain; neither is introduced by Task 1.
+
+## Round 1 Fix Report
+
+### Reviewer Findings Addressed
+
+- Replaced the `/admin` route branch with `/admin/*`, ensuring unmatched admin descendants do not fall through to the public wildcard route. All admin descendants mount `AdminSeoHead` and receive `noindex,nofollow`.
+- Added `src/seo/SeoHead.test.tsx` with a real jsdom render of `SeoHead` and `AdminSeoHead`. Tests cover title, description, canonical, Open Graph, Twitter, robots, duplicate prevention, and admin cleanup behavior.
+- Added `jsdom` as a development test dependency and updated `package-lock.json` so Vitest can run the component tests in a DOM environment.
+
+### Fix Files
+
+- `src/App.tsx`
+- `src/seo/SeoHead.tsx`
+- `src/seo/SeoHead.test.tsx`
+- `package.json`
+- `package-lock.json`
+- This report file
+
+### Fix Verification
+
+Focused SEO tests:
+
+```text
+npx vitest run src/seo/seoContent.test.ts src/seo/SeoHead.test.tsx
+```
+
+Result: PASS, 2 test files and 7 tests passed.
+
+Full test suite:
+
+```text
+npx vitest run
+```
+
+Result: PASS, 15 test files and 120 tests passed. Existing bootstrap coverage logs its expected simulated network error to stderr.
+
+Production build:
+
+```text
+npm run build
+```
+
+Result: PASS. TypeScript compilation and Vite production build completed successfully. The existing large-chunk warning remains.
+
+Lint:
+
+```text
+npm run lint
+```
+
+Result: 0 errors and 14 warnings, all outside the fix files and pre-existing.
+
+The first component-test attempt correctly failed before adding the test dependency because `jsdom` was not installed; after adding the dependency, the focused tests passed without warnings.
+
+### Round 1 Concerns
+
+- The full suite continues to emit the existing simulated Supabase fallback error on stderr while passing.
+- The existing 14 lint warnings and Vite large-chunk warning remain outside this fix scope.

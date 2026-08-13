@@ -47,3 +47,17 @@ export function SeoHead({ entry }: { entry: SeoEntry }) {
 
   return null
 }
+
+export function AdminSeoHead() {
+  useEffect(() => {
+    document.title = 'FLIX 4K Admin'
+
+    document.head
+      .querySelectorAll('meta[name="description"], meta[property^="og:"], meta[name^="twitter:"], link[rel="canonical"]')
+      .forEach((element) => element.remove())
+
+    setMeta('robots', 'noindex,nofollow')
+  }, [])
+
+  return null
+}
