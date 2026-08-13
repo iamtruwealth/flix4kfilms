@@ -73,3 +73,35 @@ Local preview verification was also run through the webapp testing server helper
 - `robots.txt`, `sitemap.xml`, and `camera.ico` need to be present in the deployed artifact before the verifier can pass.
 - Static fallback metadata must be added by the relevant SEO implementation task before route-specific canonical and sitemap work can be considered crawlable.
 - The verifier intentionally fails until those deployment prerequisites exist; this is a signal, not a suppressed warning.
+
+## Round 1 Fix
+
+Reviewer finding: the previous implementation allowed `urllib.request.urlopen`
+to follow redirects and treated any final `200` as proof that a clean route was
+served. It also did not inspect the route response body.
+
+Fixed in `scripts/seo-verify.py` by:
+
+- Disabling automatic redirect following and retaining the requested URL, final
+  URL, status, and `Location` header for every request.
+- Requiring clean routes and required assets to return `200` without a final URL
+  change.
+- Checking clean-route HTML against the expected route title and canonical, and
+  rejecting a response identical to the homepage shell.
+- Keeping the existing asset content-type checks so a local static-host
+  fallback returning `text/html` cannot masquerade as `robots.txt`,
+  `sitemap.xml`, or `camera.ico`.
+
+Round 1 verification:
+
+- `python3 -m py_compile scripts/seo-verify.py`: passed.
+- Live `python3 scripts/seo-verify.py`: expected failure; `/about` and all
+  other clean routes remain `404`, with no redirect-following false positives.
+- Local Vite preview verifier: clean routes return `200` from Vite's fallback,
+  but each fails the generic-homepage check; the three missing assets fail
+  their content-type checks; static metadata assertions fail as expected.
+- Synthetic HTTP-server test: a `302 Location: /` response remains observable
+  as `302` with `Location=/` instead of becoming a false `200` pass.
+
+The current deployment remains unindexable at clean public paths. No routing or
+canonical migration was made as part of this fix.

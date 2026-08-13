@@ -16,9 +16,10 @@ import argparse
 import json
 import os
 import sys
+from dataclasses import dataclass
 from html.parser import HTMLParser
 from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
+from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 
 BASE_URL = "https://flix4kfilms.art"
@@ -33,6 +34,16 @@ PUBLIC_ROUTES = (
     "/videos",
     "/book",
 )
+ROUTE_TITLES = {
+    "/about": "About FLIX 4K | Atlanta Photography & Video Crew",
+    "/portfolio": "Atlanta Photography Portfolio | FLIX 4K",
+    "/portfolio/weddings": "Atlanta Wedding Photographer | FLIX 4K",
+    "/portfolio/events": "Atlanta Event Photographer | FLIX 4K",
+    "/portfolio/birthdays": "Atlanta Birthday Event Photography | FLIX 4K",
+    "/portfolio/portraits": "Atlanta Portrait Photographer | FLIX 4K",
+    "/videos": "Atlanta Photography & Video Reels | FLIX 4K",
+    "/book": "Book an Atlanta Photographer | FLIX 4K",
+}
 REQUIRED_ASSETS = {
     "/robots.txt": ("text/plain",),
     "/sitemap.xml": ("application/xml", "text/xml"),
@@ -44,6 +55,26 @@ EXPECTED_DESCRIPTION = (
     "and film productions across metro Atlanta. Book a professional photo and video crew."
 )
 EXPECTED_CANONICAL = f"{BASE_URL}/"
+
+
+class NoRedirectHandler(HTTPRedirectHandler):
+    """Keep redirect responses observable instead of following them."""
+
+    def redirect_request(self, request, response, code, msg, headers, new_url):
+        return None
+
+
+HTTP_OPENER = build_opener(NoRedirectHandler)
+
+
+@dataclass(frozen=True)
+class FetchResult:
+    status: int
+    content_type: str
+    body: str
+    requested_url: str
+    final_url: str
+    location: str
 
 
 class HeadParser(HTMLParser):
@@ -87,17 +118,31 @@ class HeadParser(HTMLParser):
             self._json_ld_buffer.append(data)
 
 
-def fetch(base_url: str, path: str) -> tuple[int, str, str]:
+def fetch(base_url: str, path: str) -> FetchResult:
     url = f"{base_url}{path}"
     request = Request(url, headers={"User-Agent": "flix4k-seo-verify/1.0"})
     try:
-        with urlopen(request, timeout=20) as response:
+        with HTTP_OPENER.open(request, timeout=20) as response:
             body = response.read().decode("utf-8", errors="replace")
-            return response.status, response.headers.get("content-type", ""), body
+            return FetchResult(
+                response.status,
+                response.headers.get("content-type", ""),
+                body,
+                url,
+                response.geturl(),
+                response.headers.get("location", ""),
+            )
     except HTTPError as error:
-        return error.code, error.headers.get("content-type", ""), ""
+        return FetchResult(
+            error.code,
+            error.headers.get("content-type", ""),
+            "",
+            url,
+            error.geturl(),
+            error.headers.get("location", ""),
+        )
     except URLError as error:
-        return 0, "", str(error.reason)
+        return FetchResult(0, "", str(error.reason), url, url, "")
 
 
 def check(label: str, passed: bool, detail: str = "") -> bool:
@@ -117,22 +162,60 @@ def main() -> int:
     base_url = args.base_url.rstrip("/")
     passed = True
 
-    statuses: dict[str, int] = {}
-    for path in PUBLIC_ROUTES + tuple(REQUIRED_ASSETS):
-        status, content_type, _ = fetch(base_url, path)
-        statuses[path] = status
-        passed &= check(f"GET {path} returns 200", status == 200, f"status={status or 'request error'}")
-        if path in REQUIRED_ASSETS and status == 200:
-            passed &= check(
-                f"{path} has the expected content type",
-                content_type.split(";", 1)[0].lower() in REQUIRED_ASSETS[path],
-                f"content-type={content_type or 'missing'}",
-            )
-
-    status, content_type, homepage = fetch(base_url, "/")
-    passed &= check("Homepage HTML downloads", status == 200 and bool(homepage), f"status={status}")
+    homepage_result = fetch(base_url, "/")
+    homepage_url_ok = homepage_result.final_url == homepage_result.requested_url
+    passed &= check(
+        "GET / returns 200 without redirect",
+        homepage_result.status == 200 and homepage_url_ok,
+        f"status={homepage_result.status or 'request error'} final={homepage_result.final_url}",
+    )
+    homepage = homepage_result.body
     if not homepage:
         return 1
+
+    statuses: dict[str, int] = {"/": homepage_result.status}
+    for path in PUBLIC_ROUTES[1:]:
+        result = fetch(base_url, path)
+        statuses[path] = result.status
+        url_ok = result.final_url == result.requested_url
+        passed &= check(
+            f"GET {path} returns 200 without redirect",
+            result.status == 200 and url_ok,
+            f"status={result.status or 'request error'} final={result.final_url}"
+            + (f" location={result.location}" if result.location else ""),
+        )
+        if result.status == 200 and url_ok:
+            route_head = HeadParser()
+            route_head.feed(result.body)
+            expected_title = ROUTE_TITLES[path]
+            expected_canonical = f"{BASE_URL}{path}"
+            route_specific = (
+                route_head.title == expected_title
+                and route_head.links.get("canonical") == expected_canonical
+                and result.body != homepage
+            )
+            passed &= check(
+                f"{path} is not a generic homepage fallback",
+                route_specific,
+                f"title={route_head.title!r} canonical={route_head.links.get('canonical', 'missing')!r}",
+            )
+
+    for path, expected_types in REQUIRED_ASSETS.items():
+        result = fetch(base_url, path)
+        statuses[path] = result.status
+        url_ok = result.final_url == result.requested_url
+        passed &= check(
+            f"GET {path} returns 200 without redirect",
+            result.status == 200 and url_ok,
+            f"status={result.status or 'request error'} final={result.final_url}"
+            + (f" location={result.location}" if result.location else ""),
+        )
+        if result.status == 200 and url_ok:
+            passed &= check(
+                f"{path} has the expected content type",
+                result.content_type.split(";", 1)[0].lower() in expected_types,
+                f"content-type={result.content_type or 'missing'}",
+            )
 
     head = HeadParser()
     head.feed(homepage)
