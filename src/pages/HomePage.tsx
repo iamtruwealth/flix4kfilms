@@ -7,6 +7,7 @@ import { useReducedMotion } from '../hooks/useReducedMotion'
 import { useCachedPortfolioItems } from '../portfolio/hooks'
 import { BrandBar, IntroOverlay, LookAgainOverlay, ScrollHint } from '../ui/TypeOverlays'
 import { PortfolioGrid } from '../ui/PortfolioGrid'
+import { AtlantaServiceIntro } from '../ui/AtlantaServiceIntro'
 import { DebugUI } from '../ui/DebugUI'
 import { ViewportCrosshair } from '../experience/CalibrationGuides'
 import { HeroDotField } from '../ui/HeroDotField'
@@ -71,6 +72,7 @@ export function HomePage() {
           <p className="kicker">SELECTED WORK</p>
           <h2>Portfolio</h2>
         </header>
+        <AtlantaServiceIntro />
         <PortfolioGrid items={featured} />
         <footer className="portfolio-foot">
           <p><Link to="/portfolio">Continue to the full portfolio →</Link></p>

@@ -229,6 +229,42 @@ body { color: var(--ink); }
   margin: 0;
 }
 
+.atlanta-service-intro {
+  max-width: 48rem;
+  margin: 0 0 clamp(4rem, 8vw, 7rem);
+  padding-top: 2rem;
+  border-top: 1px solid var(--line);
+}
+.atlanta-service-intro h2 {
+  max-width: 42rem;
+  margin: 0 0 1.6rem;
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+  font-weight: 300;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+}
+.atlanta-service-intro > p:not(.kicker) {
+  max-width: 42rem;
+  margin: 0 0 1.1rem;
+  color: var(--dim);
+  font-size: clamp(0.96rem, 1.4vw, 1.06rem);
+  line-height: 1.7;
+}
+.atlanta-service-intro nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1.5rem;
+  margin-top: 1.8rem;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+}
+.atlanta-service-intro nav a {
+  color: var(--ink);
+  text-underline-offset: 0.3rem;
+}
+.atlanta-service-intro nav a:hover { color: var(--dim); }
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -344,6 +380,13 @@ body { color: var(--ink); }
 .band--soloPortrait .frame { grid-column: 1 / 5; }
 
 @media (max-width: 720px) {
+  .atlanta-service-intro {
+    margin-bottom: 4rem;
+    padding-top: 1.5rem;
+  }
+  .atlanta-service-intro h2 { margin-bottom: 1.2rem; }
+  .atlanta-service-intro > p:not(.kicker) { line-height: 1.62; }
+  .atlanta-service-intro nav { display: grid; gap: 0.8rem; }
   .band { grid-template-columns: 1fr; gap: 1.5rem; }
   .frame,
   .band--heroDuo .frame,
