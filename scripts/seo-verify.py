@@ -3,6 +3,8 @@
 
 Usage:
     python3 scripts/seo-verify.py
+    python3 scripts/seo-verify.py https://flix4kfilms.art
+    python3 scripts/seo-verify.py --base-url https://flix4kfilms.art
     SEO_BASE_URL=http://127.0.0.1:4173 python3 scripts/seo-verify.py
 
 The checker intentionally tests clean public URLs as server requests. A 200
@@ -151,15 +153,27 @@ def check(label: str, passed: bool, detail: str = "") -> bool:
     return passed
 
 
-def main() -> int:
+def parse_base_url(argv: list[str] | None = None) -> str:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
+        "base_url_positional",
+        nargs="?",
+        help="site origin to verify (legacy positional form)",
+    )
+    parser.add_argument(
         "--base-url",
-        default=os.environ.get("SEO_BASE_URL", BASE_URL),
+        dest="base_url_flag",
+        default=None,
         help=f"site origin to verify (default: $SEO_BASE_URL or {BASE_URL})",
     )
-    args = parser.parse_args()
-    base_url = args.base_url.rstrip("/")
+    args = parser.parse_args(argv)
+    if args.base_url_positional and args.base_url_flag and args.base_url_positional != args.base_url_flag:
+        parser.error("positional URL and --base-url must match when both are provided")
+    return args.base_url_flag or args.base_url_positional or os.environ.get("SEO_BASE_URL", BASE_URL)
+
+
+def main() -> int:
+    base_url = parse_base_url().rstrip("/")
     passed = True
 
     homepage_result = fetch(base_url, "/")
