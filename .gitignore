@@ -34,3 +34,4 @@ supabase/.branches
 
 # Agent worktrees
 .worktrees/
+.superpowers/
