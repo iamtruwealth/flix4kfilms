@@ -4,6 +4,8 @@ import { AppShell } from './ui/AppShell'
 import { HomePage } from './pages/HomePage'
 import { AdminSeoHead, SeoHead } from './seo/SeoHead'
 import { SEO_ENTRIES } from './seo/seoContent'
+import { JsonLd } from './seo/JsonLd'
+import { buildBreadcrumbSchema, buildOrganizationSchema, buildWebSiteSchema } from './seo/schema'
 
 const BookPage = lazy(() => import('./pages/BookPage').then((m) => ({ default: m.BookPage })))
 const PortfolioPage = lazy(() =>
@@ -52,10 +54,14 @@ function Lazy({ children }: { children: React.ReactNode }) {
 function PublicShell() {
   const { pathname } = useLocation()
   const entry = SEO_ENTRIES[pathname] ?? SEO_ENTRIES['/']
+  const breadcrumb = buildBreadcrumbSchema(pathname)
 
   return (
     <>
       <SeoHead entry={entry} />
+      {pathname === '/' ? <JsonLd data={buildWebSiteSchema()} /> : null}
+      {pathname === '/' ? <JsonLd data={buildOrganizationSchema()} /> : null}
+      {breadcrumb ? <JsonLd data={breadcrumb} /> : null}
       <AppShell />
     </>
   )
