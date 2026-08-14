@@ -64,6 +64,14 @@ class SeoVerifyFixtureTests(unittest.TestCase):
 
         self.assertTrue(route_fallback_assertion(route_head, "/about", homepage))
 
+    def test_accepts_matching_trailing_slash_redirect(self):
+        result = FetchResult(301, "text/html", "", "https://example.com/about", "https://example.com/about", "https://example.com/about/")
+        self.assertTrue(redirect_assertion(result, "/about"))
+
+    def test_rejects_redirect_to_homepage(self):
+        result = FetchResult(301, "text/html", "", "https://example.com/about", "https://example.com/about", "https://example.com/")
+        self.assertFalse(redirect_assertion(result, "/about"))
+
     def test_detects_redirect_response(self):
         result = FetchResult(301, "text/html", "", "https://example.com/about", "https://example.com/", "https://example.com/")
         self.assertFalse(redirect_assertion(result))

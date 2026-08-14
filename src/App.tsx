@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { HashRouter, Route, Routes, useLocation } from 'react-router-dom'
+import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { AppShell } from './ui/AppShell'
 import { HomePage } from './pages/HomePage'
 import { AdminSeoHead, NoIndexSeoHead, SeoHead } from './seo/SeoHead'
@@ -69,7 +69,7 @@ function PublicShell() {
 
 function App() {
   return (
-    <HashRouter>
+    <BrowserRouter>
       <Routes>
         <Route element={<PublicShell />}>
           <Route path="/" element={<HomePage />} />
@@ -91,7 +91,7 @@ function App() {
           </Route>
         </Route>
       </Routes>
-    </HashRouter>
+    </BrowserRouter>
   )
 }
 

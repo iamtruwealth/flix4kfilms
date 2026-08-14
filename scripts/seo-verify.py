@@ -46,6 +46,16 @@ ROUTE_TITLES = {
     "/videos": "Atlanta Photography & Video Reels | FLIX 4K",
     "/book": "Book an Atlanta Photographer | FLIX 4K",
 }
+ROUTE_DESCRIPTIONS = {
+    "/about": "Learn about FLIX 4K Photography, an inclusive Atlanta photo and video crew serving weddings, portraits, events, and film productions across metro Atlanta.",
+    "/portfolio": "Explore the FLIX 4K photography portfolio featuring Atlanta weddings, portraits, birthdays, events, and visual stories created across metro Atlanta.",
+    "/portfolio/weddings": "View Atlanta wedding photography by FLIX 4K, with thoughtful coverage for ceremonies, celebrations, couples, families, and the moments between them.",
+    "/portfolio/events": "See event photography from FLIX 4K for Atlanta celebrations, special events, productions, and gatherings captured with an efficient professional crew.",
+    "/portfolio/birthdays": "Explore birthday and milestone event photography from FLIX 4K, serving clients across metro Atlanta with polished, friendly, efficient coverage.",
+    "/portfolio/portraits": "Discover Atlanta portrait photography by FLIX 4K for individuals, couples, families, and personal stories captured with intention.",
+    "/videos": "Watch FLIX 4K photography and video reels for weddings, events, portraits, social content, and film-friendly productions across metro Atlanta.",
+    "/book": "Book FLIX 4K for Atlanta wedding photography, portraits, events, video, or film production. Tell us what you are planning and start a conversation.",
+}
 REQUIRED_ASSETS = {
     "/robots.txt": ("text/plain",),
     "/sitemap.xml": ("application/xml", "text/xml"),
@@ -185,19 +195,27 @@ def homepage_assertions(head: HeadParser) -> list[str]:
     return failures
 
 
-def route_fallback_assertion(head: HeadParser, path: str, homepage: str) -> bool:
+def route_fallback_assertion(head: HeadParser, path: str, homepage: str, body: str = "") -> bool:
     expected_title = ROUTE_TITLES[path]
+    expected_description = ROUTE_DESCRIPTIONS[path]
     expected_canonical = f"{BASE_URL}{path}"
     return (
         head.title == expected_title
+        and head.meta.get(("name", "description")) == expected_description
         and head.links.get("canonical") == expected_canonical
+        and head.meta.get(("property", "og:url")) == expected_canonical
+        and "BreadcrumbList" in {value.get("@type") for value in parse_json_ld_objects(head)}
         and head.title != EXPECTED_TITLE
-        and homepage != ""
+        and body != homepage
     )
 
 
-def redirect_assertion(result: FetchResult) -> bool:
-    return result.status == 200 and result.final_url == result.requested_url
+def redirect_assertion(result: FetchResult, path: str | None = None) -> bool:
+    if result.status == 200:
+        return result.final_url == result.requested_url
+    if path and path != "/" and result.status in {301, 302, 307, 308}:
+        return result.location == f"{result.requested_url}/"
+    return False
 
 
 def content_type_assertion(content_type: str, expected_types: tuple[str, ...]) -> bool:
@@ -242,17 +260,21 @@ def main() -> int:
     for path in PUBLIC_ROUTES[1:]:
         result = fetch(base_url, path)
         statuses[path] = result.status
-        url_ok = redirect_assertion(result)
+        url_ok = redirect_assertion(result, path)
+        content_result = result
+        if result.status in {301, 302, 307, 308} and url_ok:
+            content_result = fetch(base_url, f"{path}/")
+            url_ok = redirect_assertion(content_result)
         passed &= check(
-            f"GET {path} returns 200 without redirect",
-            result.status == 200 and url_ok,
+            f"GET {path} returns 200 or matching trailing-slash redirect",
+            content_result.status == 200 and url_ok,
             f"status={result.status or 'request error'} final={result.final_url}"
             + (f" location={result.location}" if result.location else ""),
         )
-        if result.status == 200 and url_ok:
+        if content_result.status == 200 and url_ok:
             route_head = HeadParser()
-            route_head.feed(result.body)
-            route_specific = route_fallback_assertion(route_head, path, homepage) and result.body != homepage
+            route_head.feed(content_result.body)
+            route_specific = route_fallback_assertion(route_head, path, homepage, content_result.body)
             passed &= check(
                 f"{path} is not a generic homepage fallback",
                 route_specific,

@@ -43,13 +43,13 @@ export function OverviewPage() {
       <div className="admin-card">
         <h2 className="admin-card-title">Quick actions</h2>
         <div className="admin-quick-actions">
-          <a className="admin-btn" href="#/admin/photos">
+          <a className="admin-btn" href="/admin/photos">
             Manage photos
           </a>
-          <a className="admin-btn admin-btn-ghost" href="#/admin/videos">
+          <a className="admin-btn admin-btn-ghost" href="/admin/videos">
             Manage videos
           </a>
-          <a className="admin-btn admin-btn-ghost" href="#/admin/categories">
+          <a className="admin-btn admin-btn-ghost" href="/admin/categories">
             Manage categories
           </a>
         </div>

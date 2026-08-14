@@ -135,7 +135,7 @@ def main() -> int:
             )
 
             # 1. Public homepage loads
-            page.goto(f"{base}/#/", timeout=45000)
+            page.goto(f"{base}/", timeout=45000)
             record("1. Public homepage loads", has_text(page, "FLIX"))
 
             # 2. GLB camera model asset loads (HTTP 200)
@@ -145,7 +145,7 @@ def main() -> int:
                     lambda r: r.url.endswith(".glb") and r.status == 200,
                     timeout=30000,
                 ) as resp_info:
-                    page.goto(f"{base}/#/", timeout=45000)
+                    page.goto(f"{base}/", timeout=45000)
                 glb_ok = resp_info.value is not None
             except Exception:
                 glb_ok = False
@@ -154,7 +154,7 @@ def main() -> int:
             # 3. Camera / 3D experience initializes (WebGL canvas mounts)
             canvas_ok = False
             try:
-                page.goto(f"{base}/#/", timeout=45000)
+                page.goto(f"{base}/", timeout=45000)
                 page.wait_for_selector("canvas", timeout=30000)
                 canvas_ok = page.locator("canvas").count() >= 1
             except Exception:
@@ -162,7 +162,7 @@ def main() -> int:
             record("3. Camera experience initializes (WebGL canvas)", canvas_ok)
 
             # 4. LCD/photo experience does not throw (scroll through it)
-            page.goto(f"{base}/#/", timeout=45000)
+            page.goto(f"{base}/", timeout=45000)
             page.wait_for_load_state("networkidle")
             try:
                 page.mouse.wheel(0, 4000)
@@ -175,19 +175,19 @@ def main() -> int:
             record("4. LCD/photo experience renders without errors", not lcd_errors, f"{len(lcd_errors)} LCD error(s)")
 
             # 5. Portfolio navigation is accessible
-            page.goto(f"{base}/#/portfolio", timeout=45000)
+            page.goto(f"{base}/portfolio", timeout=45000)
             record("5. Portfolio navigation is accessible", "portfolio" in page.url and has_text(page, "PORTFOLIO"))
 
             # 6. Public portfolio route loads (with content)
-            page.goto(f"{base}/#/portfolio/weddings", timeout=45000)
+            page.goto(f"{base}/portfolio/weddings", timeout=45000)
             record("6. Public portfolio route loads", "weddings" in page.url and has_text(page, "WEDDINGS"))
 
             # 7. Videos page loads
-            page.goto(f"{base}/#/videos", timeout=45000)
+            page.goto(f"{base}/videos", timeout=45000)
             record("7. Videos page loads", "videos" in page.url and has_text(page, "VIDEOS"))
 
             # 8. Admin login page loads
-            page.goto(f"{base}/#/admin/login", timeout=45000)
+            page.goto(f"{base}/admin/login", timeout=45000)
             login_ok = False
             try:
                 page.wait_for_selector("input[type=email]", timeout=15000)
@@ -200,24 +200,24 @@ def main() -> int:
             record("8. Admin login page loads", login_ok)
 
             # 9. Protected /admin route redirects unauthenticated visitors
-            page.goto(f"{base}/#/admin", timeout=45000)
+            page.goto(f"{base}/admin", timeout=45000)
             redirected = False
             try:
-                page.wait_for_url("**/#/admin/login", timeout=15000)
+                page.wait_for_url("**/admin/login", timeout=15000)
                 redirected = True
             except Exception:
                 redirected = False
             record("9. Protected /admin redirects unauthenticated users", redirected)
 
             # 10. About + Book pages load (remainder of public shell)
-            page.goto(f"{base}/#/about", timeout=45000)
+            page.goto(f"{base}/about", timeout=45000)
             about_ok = "about" in page.url and has_text(page, "ABOUT")
-            page.goto(f"{base}/#/book", timeout=45000)
+            page.goto(f"{base}/book", timeout=45000)
             book_ok = "book" in page.url and has_text(page, "BOOK")
             record("10. About + Book pages load", about_ok and book_ok)
 
             # 10b. Booking page mounts the Cal.com embed OR shows the fallback
-            page.goto(f"{base}/#/book", timeout=45000)
+            page.goto(f"{base}/book", timeout=45000)
             page.wait_for_timeout(2500)
             iframe_ok = page.locator(".book-embed-slot iframe").count() >= 1
             fallback_ok = page.locator(".book-fallback").count() >= 1
@@ -228,7 +228,7 @@ def main() -> int:
             )
 
             # 10c. Booking reassurance copy present
-            page.goto(f"{base}/#/book", timeout=45000)
+            page.goto(f"{base}/book", timeout=45000)
             record("10c. Booking reassurance present", has_text(page, "BOOKING REQUEST"))
 
             # 11. Zero unexpected browser console errors
@@ -252,13 +252,13 @@ def main() -> int:
 
             # Optional authenticated admin checks (env-gated, no committed creds)
             if ADMIN_EMAIL and ADMIN_PASSWORD:
-                page.goto(f"{base}/#/admin/login", timeout=45000)
+                page.goto(f"{base}/admin/login", timeout=45000)
                 page.wait_for_selector("input[type=email]", timeout=15000)
                 page.locator("input[type=email]").fill(ADMIN_EMAIL, timeout=10000)
                 page.locator("input[type=password]").fill(ADMIN_PASSWORD, timeout=10000)
                 page.locator("button[type=submit]").click()
                 try:
-                    page.wait_for_url("**/#/admin", timeout=20000)
+                    page.wait_for_url("**/admin", timeout=20000)
                     auth_ok = "/admin" in page.url
                 except Exception:
                     auth_ok = False

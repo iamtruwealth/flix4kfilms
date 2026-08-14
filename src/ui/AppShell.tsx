@@ -3,7 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import { NavBar } from './NavBar'
 import { SiteFooter } from './SiteFooter'
 
-/** Scroll to top on every route change (HashRouter keeps scroll otherwise). */
+/** Scroll to top on every route change. */
 function ScrollToTop() {
   const { pathname } = useLocation()
   useEffect(() => {

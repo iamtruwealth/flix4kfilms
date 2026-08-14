@@ -1,13 +1,41 @@
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { resolve } from 'node:path'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { SEO_ENTRIES } from './src/seo/seoContent.js'
+import { buildBreadcrumbSchema } from './src/seo/schema.js'
+import { transformRouteHtml } from './src/seo/staticRouteHtml.js'
+
+function generateSeoRouteEntrypoints() {
+  let outDir = ''
+
+  return {
+    name: 'generate-seo-route-entrypoints',
+    configResolved(config: { root: string; build: { outDir: string } }) {
+      outDir = resolve(config.root, config.build.outDir)
+    },
+    async closeBundle() {
+      const homepageHtml = await readFile(resolve(outDir, 'index.html'), 'utf8')
+
+      await Promise.all(
+        Object.values(SEO_ENTRIES)
+          .filter((entry) => entry.path !== '/')
+          .map(async (entry) => {
+            const routeDir = resolve(outDir, entry.path.slice(1))
+            await mkdir(routeDir, { recursive: true })
+            const html = transformRouteHtml(homepageHtml, entry, buildBreadcrumbSchema(entry.path))
+            await writeFile(resolve(routeDir, 'index.html'), html)
+          }),
+      )
+    },
+  }
+}
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
-  // Relative asset base — the built bundle works under any static subpath
-  // (e.g. GitHub Pages <org>.github.io/<repo>/). Routing uses HashRouter so
-  // no server-side rewrite rules are required for deep links.
-  base: './',
+  plugins: [react(), generateSeoRouteEntrypoints()],
+  // The site is deployed at the root of the flix4kfilms.art custom domain.
+  base: '/',
   build: {
     rollupOptions: {
       output: {
