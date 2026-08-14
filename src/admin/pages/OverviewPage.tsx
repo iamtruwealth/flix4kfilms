@@ -1,4 +1,5 @@
 import { useAdminCategories, useAdminItems, useAdminVideos } from '../adminData'
+import { Link } from 'react-router-dom'
 
 /** Dashboard landing — headline counts + quick links. */
 export function OverviewPage() {
@@ -43,15 +44,15 @@ export function OverviewPage() {
       <div className="admin-card">
         <h2 className="admin-card-title">Quick actions</h2>
         <div className="admin-quick-actions">
-          <a className="admin-btn" href="/admin/photos">
+          <Link className="admin-btn" to="/admin/photos">
             Manage photos
-          </a>
-          <a className="admin-btn admin-btn-ghost" href="/admin/videos">
+          </Link>
+          <Link className="admin-btn admin-btn-ghost" to="/admin/videos">
             Manage videos
-          </a>
-          <a className="admin-btn admin-btn-ghost" href="/admin/categories">
+          </Link>
+          <Link className="admin-btn admin-btn-ghost" to="/admin/categories">
             Manage categories
-          </a>
+          </Link>
         </div>
       </div>
     </div>

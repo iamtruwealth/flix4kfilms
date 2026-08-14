@@ -54,7 +54,19 @@ export function transformRouteHtml(
   )
 
   const schema = breadcrumb
-    ? `\n    <script type="application/ld+json">${JSON.stringify(breadcrumb)}</script>`
+    ? `\n    <script type="application/ld+json" data-static-breadcrumb="true">${JSON.stringify(breadcrumb)}</script>`
     : ''
   return transformed.replace(/<\/head>/i, `${schema}\n  </head>`)
+}
+
+export function transformAdminRouteHtml(html: string): string {
+  let transformed = html
+    .replace(/\s*<script[^>]*data-homepage-schema[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/\s*<script[^>]*data-static-breadcrumb[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/\s*<meta\s+name="description"[^>]*>/gi, '')
+    .replace(/\s*<meta\s+(?:name="(?:twitter:[^"]*)"|property="og:[^"]*")[^>]*>/gi, '')
+    .replace(/\s*<link\s+rel="canonical"[^>]*>/gi, '')
+
+  transformed = replaceTag(transformed, /<title>[\s\S]*?<\/title>/i, '<title>FLIX 4K Admin</title>')
+  return transformed.replace(/<\/head>/i, '    <meta name="robots" content="noindex,nofollow">\n  </head>')
 }

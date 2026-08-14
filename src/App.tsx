@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { AppShell } from './ui/AppShell'
 import { HomePage } from './pages/HomePage'
@@ -54,7 +54,17 @@ function Lazy({ children }: { children: React.ReactNode }) {
 function PublicShell() {
   const { pathname } = useLocation()
   const entry = SEO_ENTRIES[pathname]
-  const breadcrumb = entry ? buildBreadcrumbSchema(pathname) : null
+  const [hasStaticBreadcrumb, setHasStaticBreadcrumb] = useState(
+    () => typeof document !== 'undefined' && document.querySelector('script[data-static-breadcrumb]') !== null,
+  )
+
+  useEffect(() => {
+    if (!hasStaticBreadcrumb) return
+    document.querySelectorAll('script[data-static-breadcrumb]').forEach((script) => script.remove())
+    setHasStaticBreadcrumb(false)
+  }, [hasStaticBreadcrumb])
+
+  const breadcrumb = entry && !hasStaticBreadcrumb ? buildBreadcrumbSchema(pathname) : null
 
   return (
     <>

@@ -4,7 +4,9 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { SEO_ENTRIES } from './src/seo/seoContent.js'
 import { buildBreadcrumbSchema } from './src/seo/schema.js'
-import { transformRouteHtml } from './src/seo/staticRouteHtml.js'
+import { transformAdminRouteHtml, transformRouteHtml } from './src/seo/staticRouteHtml.js'
+
+const ADMIN_ROUTES = ['/admin', '/admin/login', '/admin/photos', '/admin/videos', '/admin/categories', '/admin/settings']
 
 function generateSeoRouteEntrypoints() {
   let outDir = ''
@@ -26,6 +28,14 @@ function generateSeoRouteEntrypoints() {
             const html = transformRouteHtml(homepageHtml, entry, buildBreadcrumbSchema(entry.path))
             await writeFile(resolve(routeDir, 'index.html'), html)
           }),
+      )
+
+      await Promise.all(
+        ADMIN_ROUTES.map(async (path) => {
+          const routeDir = resolve(outDir, path.slice(1))
+          await mkdir(routeDir, { recursive: true })
+          await writeFile(resolve(routeDir, 'index.html'), transformAdminRouteHtml(homepageHtml))
+        }),
       )
     },
   }

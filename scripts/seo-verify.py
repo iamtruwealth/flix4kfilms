@@ -21,6 +21,7 @@ import sys
 from dataclasses import dataclass
 from html.parser import HTMLParser
 from urllib.error import HTTPError, URLError
+from urllib.parse import urljoin
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 
@@ -214,7 +215,8 @@ def redirect_assertion(result: FetchResult, path: str | None = None) -> bool:
     if result.status == 200:
         return result.final_url == result.requested_url
     if path and path != "/" and result.status in {301, 302, 307, 308}:
-        return result.location == f"{result.requested_url}/"
+        expected_url = urljoin(result.requested_url, f"{path}/")
+        return urljoin(result.requested_url, result.location) == expected_url
     return False
 
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { SEO_ENTRIES } from './seoContent'
 import { buildBreadcrumbSchema } from './schema'
-import { transformRouteHtml } from './staticRouteHtml'
+import { transformAdminRouteHtml, transformRouteHtml } from './staticRouteHtml'
 
 describe('transformRouteHtml', () => {
   it('creates route-specific metadata and breadcrumb schema', () => {
@@ -21,7 +21,26 @@ describe('transformRouteHtml', () => {
     expect(transformed).toContain(`<link rel="canonical" href="https://flix4kfilms.art${entry.path}">`)
     expect(transformed).toContain(`<meta property="og:url" content="https://flix4kfilms.art${entry.path}">`)
     expect(transformed).toContain('"@type":"BreadcrumbList"')
+    expect(transformed).toContain('data-static-breadcrumb')
     expect(transformed).not.toContain('data-homepage-schema')
     expect(transformed).toContain('href="/camera.glb"')
+  })
+
+  it('creates a noindex admin shell without public metadata or schemas', () => {
+    const source = `<!doctype html><html><head>
+      <title>Home</title><meta name="description" content="Home">
+      <link rel="canonical" href="https://flix4kfilms.art/">
+      <meta property="og:url" content="https://flix4kfilms.art/">
+      <script type="application/ld+json" data-homepage-schema="WebSite">{"@type":"WebSite"}</script>
+    </head><body><div id="root"></div></body></html>`
+
+    const transformed = transformAdminRouteHtml(source)
+
+    expect(transformed).toContain('<title>FLIX 4K Admin</title>')
+    expect(transformed).toContain('<meta name="robots" content="noindex,nofollow">')
+    expect(transformed).not.toContain('name="description"')
+    expect(transformed).not.toContain('rel="canonical"')
+    expect(transformed).not.toContain('property="og:url"')
+    expect(transformed).not.toContain('data-homepage-schema')
   })
 })
